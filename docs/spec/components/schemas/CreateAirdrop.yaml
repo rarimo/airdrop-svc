@@ -1,0 +1,21 @@
+allOf:
+  - $ref: '#/components/schemas/CreateAirdropKey'
+  - type: object
+    x-go-is-request: true
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - address
+          - proof
+        properties:
+          address:
+            type: string
+            description: Destination address for the airdrop
+            example: "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
+          proof:
+            type: string
+            description: Placeholder for the proof
+            example: "{}"

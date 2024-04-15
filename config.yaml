@@ -1,0 +1,16 @@
+log:
+  level: debug
+  disable_sentry: true
+
+db:
+  url: postgres://airdrop:airdrop@localhost:5432/airdrop?sslmode=disable
+
+listener:
+  addr: localhost:8000
+
+broadcaster:
+  addr: broadcaster
+  sender_account: "rarimo15hcd6tv7pe8hk2re7hu0zg0aphqdm2dtjrs0ds"
+
+airdrop:
+  amount: 100000 # urmo

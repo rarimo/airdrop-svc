@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Airdrop
+  summary: Create airdrop
+  description: Create an airdrop for unique user. The proof will be verified.
+  operationId: createAirdrop
+  requestBody:
+    content:
+      application/vnd.api+json:
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              $ref: '#/components/schemas/CreateAirdrop'
+  responses:
+    204:
+      description: No content
+    401:
+      $ref: '#/components/responses/invalidAuth'
+    404:
+      $ref: '#/components/responses/notFound'
+    409:
+      description: Airdrop was already done
+      content:
+        application/vnd.api+json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+    500:
+      $ref: '#/components/responses/internalError'
