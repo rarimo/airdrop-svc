@@ -1,0 +1,213 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "airdrop-svc",
+    "description": ""
+  },
+  "servers": [
+    {
+      "url": "https://api.stage.rarime.com",
+      "description": "TokenD Developer Environment"
+    }
+  ],
+  "paths": {
+    "/integrations/airdrop-svc/airdrops": {
+      "post": {
+        "tags": [
+          "Airdrop"
+        ],
+        "summary": "Create airdrop",
+        "description": "Create an airdrop for unique user. The proof will be verified.",
+        "operationId": "createAirdrop",
+        "requestBody": {
+          "content": {
+            "application/vnd.api+json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "data": {
+                    "$ref": "#/components/schemas/CreateAirdrop"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "401": {
+            "$ref": "#/components/responses/invalidAuth"
+          },
+          "404": {
+            "$ref": "#/components/responses/notFound"
+          },
+          "409": {
+            "description": "Airdrop was already done",
+            "content": {
+              "application/vnd.api+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Errors"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/internalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateAirdrop": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CreateAirdropKey"
+          },
+          {
+            "type": "object",
+            "x-go-is-request": true,
+            "required": [
+              "attributes"
+            ],
+            "properties": {
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "address",
+                  "proof"
+                ],
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "description": "Destination address for the airdrop",
+                    "example": "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
+                  },
+                  "proof": {
+                    "type": "string",
+                    "description": "Placeholder for the proof",
+                    "example": "{}"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "CreateAirdropKey": {
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Nullifier",
+            "example": "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "create_airdrop"
+            ]
+          }
+        }
+      },
+      "Errors": {
+        "description": "Standard JSON:API error",
+        "type": "object",
+        "required": [
+          "errors"
+        ],
+        "properties": {
+          "errors": {
+            "type": "array",
+            "description": "Non empty array of errors occurred during request processing",
+            "items": {
+              "type": "object",
+              "required": [
+                "title",
+                "status"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Title is a short, human-readable summary of the problem",
+                  "example": "Bad Request"
+                },
+                "detail": {
+                  "type": "string",
+                  "description": "Detail is a human-readable explanation specific to this occurrence of the problem",
+                  "example": "Request body was expected"
+                },
+                "status": {
+                  "type": "integer",
+                  "description": "Status is the HTTP status code applicable to this problem",
+                  "example": 400,
+                  "enum": [
+                    400,
+                    401,
+                    403,
+                    404,
+                    409,
+                    500
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "internalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/vnd.api+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Errors"
+            }
+          }
+        }
+      },
+      "invalidAuth": {
+        "description": "You must provide a valid authorization params.",
+        "content": {
+          "application/vnd.api+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Errors"
+            }
+          }
+        }
+      },
+      "invalidParameter": {
+        "description": "One of the parameters is invalid. Refer to the response body for details.",
+        "content": {
+          "application/vnd.api+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Errors"
+            }
+          }
+        }
+      },
+      "notFound": {
+        "description": "Requested resource does not exist.",
+        "content": {
+          "application/vnd.api+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Errors"
+            }
+          }
+        }
+      }
+    }
+  }
+}
