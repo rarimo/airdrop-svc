@@ -9,7 +9,7 @@ import (
 	"gitlab.com/distributed_lab/ape"
 )
 
-func Run(ctx context.Context, cfg config.Config) {
+func Run(ctx context.Context, cfg *config.Config) {
 	r := chi.NewRouter()
 
 	r.Use(

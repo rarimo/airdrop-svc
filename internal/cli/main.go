@@ -42,7 +42,7 @@ func Run(args []string) bool {
 	defer stop()
 
 	var wg sync.WaitGroup
-	run := func(f func(context.Context, config.Config)) {
+	run := func(f func(context.Context, *config.Config)) {
 		wg.Add(1)
 		go func() {
 			f(ctx, cfg)

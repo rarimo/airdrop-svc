@@ -12,7 +12,7 @@ var migrations = &migrate.EmbedFileSystemMigrationSource{
 	Root:       "migrations",
 }
 
-func MigrateUp(cfg config.Config) error {
+func MigrateUp(cfg *config.Config) error {
 	applied, err := migrate.Exec(cfg.DB().RawDB(), "postgres", migrations, migrate.Up)
 	if err != nil {
 		return errors.Wrap(err, "failed to apply migrations")
@@ -21,7 +21,7 @@ func MigrateUp(cfg config.Config) error {
 	return nil
 }
 
-func MigrateDown(cfg config.Config) error {
+func MigrateDown(cfg *config.Config) error {
 	applied, err := migrate.Exec(cfg.DB().RawDB(), "postgres", migrations, migrate.Down)
 	if err != nil {
 		return errors.Wrap(err, "failed to apply migrations")

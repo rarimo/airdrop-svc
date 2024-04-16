@@ -17,8 +17,8 @@ type Config struct {
 	getter  kv.Getter
 }
 
-func New(getter kv.Getter) Config {
-	return Config{
+func New(getter kv.Getter) *Config {
+	return &Config{
 		getter:        getter,
 		Databaser:     pgdb.NewDatabaser(getter),
 		Listenerer:    comfig.NewListenerer(getter),
