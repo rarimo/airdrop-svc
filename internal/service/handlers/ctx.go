@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/rarimo/airdrop-svc/internal/config"
 	data "github.com/rarimo/airdrop-svc/internal/data"
 	"github.com/rarimo/saver-grpc-lib/broadcaster"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -16,6 +17,7 @@ const (
 	participantsQCtxKey
 	airdropAmountCtxKey
 	broadcasterCtxKey
+	verifierCtxKey
 )
 
 func CtxLog(entry *logan.Entry) func(context.Context) context.Context {
@@ -56,4 +58,14 @@ func CtxBroadcaster(broadcaster broadcaster.Broadcaster) func(context.Context) c
 
 func Broadcaster(r *http.Request) broadcaster.Broadcaster {
 	return r.Context().Value(broadcasterCtxKey).(broadcaster.Broadcaster)
+}
+
+func CtxVerifier(entry *config.VerifierConfig) func(context.Context) context.Context {
+	return func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, verifierCtxKey, entry)
+	}
+}
+
+func Verifier(r *http.Request) *config.VerifierConfig {
+	return r.Context().Value(verifierCtxKey).(*config.VerifierConfig)
 }

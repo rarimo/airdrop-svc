@@ -9,13 +9,14 @@ allOf:
         type: object
         required:
           - address
-          - proof
+          - passport_data
         properties:
           address:
             type: string
             description: Destination address for the airdrop
             example: "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
-          proof:
+          passport_data:
             type: string
-            description: Placeholder for the proof
+            format: PassportData
+            description: All passport-related data required to verify passport-based ZKP
             example: "{}"

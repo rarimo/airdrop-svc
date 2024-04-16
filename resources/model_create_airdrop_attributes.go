@@ -7,6 +7,6 @@ package resources
 type CreateAirdropAttributes struct {
 	// Destination address for the airdrop
 	Address string `json:"address"`
-	// Placeholder for the proof
-	Proof string `json:"proof"`
+	// All passport-related data required to verify passport-based ZKP
+	PassportData PassportData `json:"passport_data"`
 }

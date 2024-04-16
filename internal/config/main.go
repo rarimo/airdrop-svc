@@ -13,8 +13,9 @@ type Config struct {
 	comfig.Listenerer
 	broadcaster.Broadcasterer
 
-	airdrop comfig.Once
-	getter  kv.Getter
+	airdrop  comfig.Once
+	verifier comfig.Once
+	getter   kv.Getter
 }
 
 func New(getter kv.Getter) *Config {
