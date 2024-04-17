@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"gitlab.com/distributed_lab/figure/v3"
@@ -8,17 +9,17 @@ import (
 )
 
 type VerifierConfig struct {
-	VerificationKeys map[string][]byte
-	MasterCerts      []byte
-	AllowedAge       int
+	VerificationKeys    map[string][]byte
+	AllowedAge          int
+	AllowedCitizenships []interface{} // more convenient to use for validation, replace on need
 }
 
 func (c *Config) Verifier() *VerifierConfig {
 	return c.verifier.Do(func() interface{} {
 		var cfg struct {
 			VerificationKeysPaths map[string]string `fig:"verification_keys_paths,required"`
-			MasterCertsPath       string            `fig:"master_certs_path,required"`
 			AllowedAge            int               `fig:"allowed_age,required"`
+			AllowedCitizenships   []string          `fig:"allowed_citizenships,required"`
 		}
 
 		err := figure.
@@ -27,28 +28,27 @@ func (c *Config) Verifier() *VerifierConfig {
 			From(kv.MustGetStringMap(c.getter, "verifier")).
 			Please()
 		if err != nil {
-			panic(err)
+			panic(fmt.Errorf("failed to figure out verifier: %w", err))
 		}
 
 		verificationKeys := make(map[string][]byte)
 		for algo, path := range cfg.VerificationKeysPaths {
 			verificationKey, err := os.ReadFile(path)
 			if err != nil {
-				panic(err)
+				panic(fmt.Errorf("failed to read verification key file: %w", err))
 			}
-
 			verificationKeys[algo] = verificationKey
 		}
 
-		masterCerts, err := os.ReadFile(cfg.MasterCertsPath)
-		if err != nil {
-			panic(err)
+		citizenships := make([]interface{}, len(cfg.AllowedCitizenships))
+		for i, ctz := range cfg.AllowedCitizenships {
+			citizenships[i] = ctz
 		}
 
 		return &VerifierConfig{
-			VerificationKeys: verificationKeys,
-			MasterCerts:      masterCerts,
-			AllowedAge:       cfg.AllowedAge,
+			VerificationKeys:    verificationKeys,
+			AllowedAge:          cfg.AllowedAge,
+			AllowedCitizenships: citizenships,
 		}
 	}).(*VerifierConfig)
 }

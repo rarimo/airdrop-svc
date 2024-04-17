@@ -1,12 +1,7 @@
 type: object
 required:
-  - id
   - type
 properties:
-  id:
-    type: string
-    description: Nullifier
-    example: "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
   type:
     type: string
     enum: [ create_airdrop ]
