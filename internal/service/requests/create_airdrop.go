@@ -3,13 +3,11 @@ package requests
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"net/http"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/types"
 	val "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/resources"
 )
@@ -22,7 +20,7 @@ const (
 	pubSignalEventData   = 10
 	pubSignalSelector    = 12
 
-	proofSelectorValue = "placeholder" // todo configure
+	proofSelectorValue = "39"
 )
 
 func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resources.CreateAirdropRequest, err error) {
@@ -47,34 +45,18 @@ func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resource
 		return req, err
 	}
 
-	addrHash, err := poseidonHash(attr.Address)
-	if err != nil {
-		return req, val.Errors{"data/attributes/address": err}
-	}
+	addrBytes, _ := types.AccAddressFromBech32(attr.Address)
+	addrDec := encodeInt(addrBytes)
+	citizenship := decodeInt(signals[pubSignalCitizenship])
 
 	return req, val.Errors{
 		"pub_signals/nullifier":       val.Validate(signals[PubSignalNullifier], val.Required),
 		"pub_signals/selector":        val.Validate(signals[pubSignalSelector], val.Required, val.In(proofSelectorValue)),
 		"pub_signals/expiration_date": val.Validate(signals[pubSignalExpirationDate], val.Required, afterDate(time.Now().UTC())),
 		"pub_signals/birth_date":      val.Validate(signals[pubSignalBirthDate], val.Required, beforeDate(olderThanDate)),
-		"pub_signals/citizenship":     val.Validate(signals[pubSignalCitizenship], val.Required, val.In(cfg.AllowedCitizenships...)),
-		"pub_signals/event_data":      val.Validate(signals[pubSignalEventData], val.Required, val.In(addrHash, "0x"+addrHash)),
+		"pub_signals/citizenship":     val.Validate(citizenship, val.Required, val.In(cfg.AllowedCitizenships...)),
+		"pub_signals/event_data":      val.Validate(signals[pubSignalEventData], val.Required, val.In(addrDec, "0x"+addrDec)),
 	}.Filter()
-}
-
-func poseidonHash(addr string) (string, error) {
-	bytes, err := types.AccAddressFromBech32(addr)
-	if err != nil {
-		return "", fmt.Errorf("invalid address: %w", err)
-	}
-	bigAddr := new(big.Int).SetBytes(bytes)
-
-	h, err := poseidon.Hash([]*big.Int{bigAddr})
-	if err != nil {
-		return "", fmt.Errorf("hash address: %w", err)
-	}
-
-	return h.Text(16), nil
 }
 
 func newDecodeError(what string, err error) error {

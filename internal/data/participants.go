@@ -35,7 +35,10 @@ func (q *ParticipantsQ) New() *ParticipantsQ {
 }
 
 func (q *ParticipantsQ) Insert(nullifier, address string) error {
-	stmt := squirrel.Insert(participantsTable).Columns("nullifier").Values(nullifier)
+	stmt := squirrel.Insert(participantsTable).SetMap(map[string]interface{}{
+		"nullifier": nullifier,
+		"address":   address,
+	})
 
 	if err := q.db.Exec(stmt); err != nil {
 		return fmt.Errorf("insert participant %s: %w", nullifier, err)

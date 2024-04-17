@@ -1,15 +1,9 @@
 package handlers
 
 import (
-	"bytes"
-	"crypto/x509"
-	"errors"
 	"fmt"
-	"math/big"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 
 	cosmos "github.com/cosmos/cosmos-sdk/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -41,7 +35,9 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	participant, err := ParticipantsQ(r).Get(req.Data.ID)
+	nullifier := req.Data.Attributes.ZkProof.PubSignals[requests.PubSignalNullifier]
+
+	participant, err := ParticipantsQ(r).Get(nullifier)
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to get participant by ID")
 		ape.RenderErr(w, problems.InternalError())
@@ -59,7 +55,6 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		})...)
 		return
 	}
-	nullifier := req.Data.Attributes.ZkProof.PubSignals[requests.PubSignalNullifier]
 
 	err = ParticipantsQ(r).Transaction(func() error {
 		err = ParticipantsQ(r).Insert(nullifier, req.Data.Attributes.Address)
@@ -130,91 +125,6 @@ func signatureAlgorithm(passedAlgorithm string) string {
 	}
 
 	return ""
-}
-
-func validateCurrentDate(pubSignals []string) error {
-	year, err := strconv.Atoi(pubSignals[3])
-	if err != nil {
-		return fmt.Errorf("invalid year: %w", err)
-	}
-
-	month, err := strconv.Atoi(pubSignals[4])
-	if err != nil {
-		return fmt.Errorf("invalid month: %w", err)
-	}
-
-	day, err := strconv.Atoi(pubSignals[5])
-	if err != nil {
-		return fmt.Errorf("invalid day: %w", err)
-	}
-
-	currentTime := time.Now().UTC()
-
-	if currentTime.Year() != (2000 + year) {
-		return fmt.Errorf("invalid year, expected %d, got %d", currentTime.Year(), 2000+year)
-	}
-
-	if currentTime.Month() != time.Month(month) {
-		return fmt.Errorf("invalid month, expected %d, got %d", currentTime.Month(), month)
-	}
-
-	if currentTime.Day() != day {
-		return fmt.Errorf("invalid day, expected %d, got %d", currentTime.Day(), day)
-	}
-
-	return nil
-}
-
-func validatePubSignalsAge(cfg *config.VerifierConfig, agePubSignal string) error {
-	age, err := strconv.Atoi(agePubSignal)
-	if err != nil {
-		return fmt.Errorf("age is not int: %w", err)
-	}
-	if age < cfg.AllowedAge {
-		return errors.New("invalid age")
-	}
-	return nil
-}
-
-func validateCert(cert *x509.Certificate, masterCertsPem []byte) error {
-	roots := x509.NewCertPool()
-	roots.AppendCertsFromPEM(masterCertsPem)
-
-	foundCerts, err := cert.Verify(x509.VerifyOptions{Roots: roots})
-	if err != nil {
-		return fmt.Errorf("invalid certificate: %w", err)
-	}
-
-	if len(foundCerts) == 0 {
-		return fmt.Errorf("invalid certificate: not ")
-	}
-
-	return nil
-}
-
-func stringsToArrayBigInt(publicSignals []string) ([]*big.Int, error) {
-	p := make([]*big.Int, 0, len(publicSignals))
-	for _, s := range publicSignals {
-		sb, err := stringToBigInt(s)
-		if err != nil {
-			return nil, err
-		}
-		p = append(p, sb)
-	}
-	return p, nil
-}
-
-func stringToBigInt(s string) (*big.Int, error) {
-	base := 10
-	if bytes.HasPrefix([]byte(s), []byte("0x")) {
-		base = 16
-		s = strings.TrimPrefix(s, "0x")
-	}
-	n, ok := new(big.Int).SetString(s, base)
-	if !ok {
-		return nil, fmt.Errorf("cannot parse string to *big.Int: %s (base=%d)", s, base)
-	}
-	return n, nil
 }
 
 func broadcastWithdrawalTx(req resources.CreateAirdropRequest, r *http.Request) error {
