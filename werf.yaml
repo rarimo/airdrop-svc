@@ -43,3 +43,7 @@ import:
     add: /usr/local/bin/airdrop-svc
     to: /usr/local/bin/airdrop-svc
     after: setup
+  - image: builder
+    add: /go/src/github.com/rarimo/airdrop-svc/verification_key.json
+    to: /verification_key.json
+    after: setup
