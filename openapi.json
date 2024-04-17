@@ -82,7 +82,8 @@
                 "type": "object",
                 "required": [
                   "address",
-                  "proof"
+                  "algorithm",
+                  "zk_proof"
                 ],
                 "properties": {
                   "address": {
@@ -90,9 +91,15 @@
                     "description": "Destination address for the airdrop",
                     "example": "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
                   },
-                  "proof": {
+                  "algorithm": {
                     "type": "string",
-                    "description": "Placeholder for the proof",
+                    "description": "Signing algorithm used in proof. The value from passport document SOD is assumed.",
+                    "example": "sha256_ecdsa"
+                  },
+                  "zk_proof": {
+                    "type": "string",
+                    "format": "types.ZKProof",
+                    "description": "ZK-proof of the passport data",
                     "example": "{}"
                   }
                 }
@@ -104,15 +111,9 @@
       "CreateAirdropKey": {
         "type": "object",
         "required": [
-          "id",
           "type"
         ],
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Nullifier",
-            "example": "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
-          },
           "type": {
             "type": "string",
             "enum": [
