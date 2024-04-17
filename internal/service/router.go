@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/go-chi/chi"
 	"github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/internal/service/handlers"
@@ -10,6 +11,7 @@ import (
 )
 
 func Run(ctx context.Context, cfg *config.Config) {
+	setBech32Prefixes()
 	r := chi.NewRouter()
 
 	r.Use(
@@ -29,4 +31,12 @@ func Run(ctx context.Context, cfg *config.Config) {
 
 	cfg.Log().Info("Service started")
 	ape.Serve(ctx, r, cfg, ape.ServeOpts{})
+}
+
+func setBech32Prefixes() {
+	c := types.GetConfig()
+	c.SetBech32PrefixForAccount("rarimo", "rarimopub")
+	c.SetBech32PrefixForValidator("rarimovaloper", "rarimovaloperpub")
+	c.SetBech32PrefixForConsensusNode("rarimovalcons", "rarimovalconspub")
+	c.Seal()
 }

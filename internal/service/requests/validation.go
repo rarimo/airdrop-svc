@@ -1,31 +1,32 @@
 package requests
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
-var isHex hexRule
+var isRarimoAddr addressRule
 
 type (
-	hexRule  struct{}
-	timeRule struct {
+	addressRule struct{}
+	timeRule    struct {
 		point    time.Time
 		isBefore bool
 	}
 )
 
-func (r hexRule) Validate(data interface{}) error {
+func (r addressRule) Validate(data interface{}) error {
 	str, ok := data.(string)
 	if !ok {
 		return fmt.Errorf("invalid type: %T, expected string", data)
 	}
 
-	_, err := hex.DecodeString(str)
+	_, err := types.AccAddressFromBech32(str)
 	if err != nil {
-		return fmt.Errorf("invalid hex string: %w", err)
+		return fmt.Errorf("invalid bech32 address: %w", err)
 	}
 
 	return nil

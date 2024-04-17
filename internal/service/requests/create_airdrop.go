@@ -38,7 +38,7 @@ func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resource
 
 	err = val.Errors{
 		"data/type":                            val.Validate(req.Data.Type, val.Required, val.In(resources.CREATE_AIRDROP)),
-		"data/attributes/address":              val.Validate(attr.Address, val.Required, isHex),
+		"data/attributes/address":              val.Validate(attr.Address, val.Required, isRarimoAddr),
 		"data/attributes/algorithm":            val.Validate(attr.Algorithm, val.Required),
 		"data/attributes/zk_proof/proof":       val.Validate(attr.ZkProof.Proof, val.Required),
 		"data/attributes/zk_proof/pub_signals": val.Validate(signals, val.Required, val.Length(14, 14)),
