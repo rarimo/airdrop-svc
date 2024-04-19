@@ -13,8 +13,8 @@ import (
 
 func GetAirdrop(w http.ResponseWriter, r *http.Request) {
 	var (
-		id        = chi.URLParam(r, "id")
-		err error = validation.Errors{"{id}": validation.Validate(id, validation.Required)}
+		id  = chi.URLParam(r, "id")
+		err = validation.Errors{"{id}": validation.Validate(id, validation.Required)}.Filter()
 	)
 	if err != nil {
 		ape.RenderErr(w, problems.BadRequest(err)...)

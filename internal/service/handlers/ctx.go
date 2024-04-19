@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/rarimo/airdrop-svc/internal/config"
-	data "github.com/rarimo/airdrop-svc/internal/data"
+	"github.com/rarimo/airdrop-svc/internal/data"
 	"github.com/rarimo/saver-grpc-lib/broadcaster"
 	"gitlab.com/distributed_lab/logan/v3"
 )

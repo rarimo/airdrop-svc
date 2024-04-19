@@ -1,4 +1,4 @@
-package pg
+package data
 
 import (
 	"database/sql"
@@ -56,6 +56,26 @@ func (q *ParticipantsQ) Insert(p Participant) (*Participant, error) {
 	return &res, nil
 }
 
+func (q *ParticipantsQ) UpdateStatus(nullifier, status string) error {
+	stmt := squirrel.Update(participantsTable).Set("status", status).Where(squirrel.Eq{"nullifier": nullifier})
+
+	if err := q.db.Exec(stmt); err != nil {
+		return fmt.Errorf("update participant status [nullifier=%s newStatus=%s]: %w", nullifier, status, err)
+	}
+
+	return nil
+}
+
+func (q *ParticipantsQ) Delete(nullifier string) error {
+	stmt := squirrel.Delete(participantsTable).Where(squirrel.Eq{"nullifier": nullifier})
+
+	if err := q.db.Exec(stmt); err != nil {
+		return fmt.Errorf("delete participant [nullifier=%s]: %w", nullifier, err)
+	}
+
+	return nil
+}
+
 func (q *ParticipantsQ) Transaction(fn func() error) error {
 	return q.db.Transaction(fn)
 }
@@ -82,4 +102,14 @@ func (q *ParticipantsQ) Get(nullifier string) (*Participant, error) {
 	}
 
 	return &res, nil
+}
+
+func (q *ParticipantsQ) Limit(limit uint64) *ParticipantsQ {
+	q.selector = q.selector.Limit(limit)
+	return q
+}
+
+func (q *ParticipantsQ) FilterByStatus(status string) *ParticipantsQ {
+	q.selector = q.selector.Where(squirrel.Eq{"status": status})
+	return q
 }

@@ -6,16 +6,20 @@ require (
 	github.com/Masterminds/squirrel v1.4.0
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/cosmos/cosmos-sdk v0.46.12
+	github.com/ethereum/go-ethereum v1.13.11
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/iden3/go-rapidsnark/verifier v0.0.5
+	github.com/rarimo/rarimo-core v0.0.0-20231004143803-6b209428ecbf
 	github.com/rarimo/saver-grpc-lib v1.0.0
 	github.com/rubenv/sql-migrate v1.6.1
 	gitlab.com/distributed_lab/ape v1.7.1
 	gitlab.com/distributed_lab/figure/v3 v3.1.3
 	gitlab.com/distributed_lab/kit v1.11.2
 	gitlab.com/distributed_lab/logan v3.8.1+incompatible
+	gitlab.com/distributed_lab/running v0.0.0-20200706131153-4af0e83eb96c
+	google.golang.org/grpc v1.59.0
 )
 
 require (
@@ -58,7 +62,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac // indirect
 	github.com/dvsekhvalnov/jose2go v1.5.0 // indirect
 	github.com/ethereum/c-kzg-4844 v0.4.0 // indirect
-	github.com/ethereum/go-ethereum v1.13.11 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/getsentry/raven-go v0.2.0 // indirect
 	github.com/getsentry/sentry-go v0.26.0 // indirect
@@ -139,7 +142,6 @@ require (
 	github.com/zondax/ledger-go v0.14.1 // indirect
 	gitlab.com/distributed_lab/figure v2.1.2+incompatible // indirect
 	gitlab.com/distributed_lab/lorem v0.2.1 // indirect
-	gitlab.com/distributed_lab/running v0.0.0-20200706131153-4af0e83eb96c // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
@@ -154,7 +156,6 @@ require (
 	google.golang.org/genproto v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231106174013-bbf56f31fb17 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231120223509-83a465c0220f // indirect
-	google.golang.org/grpc v1.59.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

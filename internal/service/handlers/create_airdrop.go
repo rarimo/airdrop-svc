@@ -10,7 +10,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/iden3/go-rapidsnark/verifier"
 	"github.com/rarimo/airdrop-svc/internal/config"
-	data "github.com/rarimo/airdrop-svc/internal/data"
+	"github.com/rarimo/airdrop-svc/internal/data"
 	"github.com/rarimo/airdrop-svc/internal/service/requests"
 	"github.com/rarimo/airdrop-svc/resources"
 	"gitlab.com/distributed_lab/ape"
@@ -63,6 +63,7 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return fmt.Errorf("insert participant: %w", err)
 		}
+		// TODO: do not broadcast
 		return broadcastWithdrawalTx(req, r)
 	})
 
