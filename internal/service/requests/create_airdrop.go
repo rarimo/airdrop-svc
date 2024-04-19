@@ -3,6 +3,7 @@ package requests
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"time"
 
@@ -17,10 +18,12 @@ const (
 	pubSignalBirthDate
 	pubSignalExpirationDate
 	pubSignalCitizenship = 6
+	pubSignalEventID     = 9
 	pubSignalEventData   = 10
 	pubSignalSelector    = 12
 
 	proofSelectorValue = "39"
+	proofEventIDValue  = "ac42d1a986804618c7a793fbe814d9b31e47be51e082806363dca6958f3062"
 )
 
 func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resources.CreateAirdropRequest, err error) {
@@ -45,9 +48,12 @@ func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resource
 		return req, err
 	}
 
-	addrBytes, _ := types.AccAddressFromBech32(attr.Address)
-	addrDec := encodeInt(addrBytes)
-	citizenship := decodeInt(signals[pubSignalCitizenship])
+	var (
+		addrBytes, _ = types.AccAddressFromBech32(attr.Address)
+		addrDec      = encodeInt(addrBytes)
+		citizenship  = decodeInt(signals[pubSignalCitizenship])
+		eventID, _   = new(big.Int).SetString(signals[pubSignalEventID], 10)
+	)
 
 	return req, val.Errors{
 		"pub_signals/nullifier":       val.Validate(signals[PubSignalNullifier], val.Required),
@@ -55,7 +61,8 @@ func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resource
 		"pub_signals/expiration_date": val.Validate(signals[pubSignalExpirationDate], val.Required, afterDate(time.Now().UTC())),
 		"pub_signals/birth_date":      val.Validate(signals[pubSignalBirthDate], val.Required, beforeDate(olderThanDate)),
 		"pub_signals/citizenship":     val.Validate(citizenship, val.Required, val.In(cfg.AllowedCitizenships...)),
-		"pub_signals/event_data":      val.Validate(signals[pubSignalEventData], val.Required, val.In(addrDec, "0x"+addrDec)),
+		"pub_signals/event_id":        val.Validate(eventID.Text(16), val.Required, val.In(proofEventIDValue)),
+		"pub_signals/event_data":      val.Validate(signals[pubSignalEventData], val.Required, val.In(addrDec)),
 	}.Filter()
 }
 

@@ -1,0 +1,32 @@
+allOf:
+  - $ref: '#/components/schemas/AirdropKey'
+  - type: object
+    required:
+      - attributes
+    properties:
+      attributes:
+        type: object
+        required:
+          - address
+          - status
+          - created_at
+          - updated_at
+        properties:
+          address:
+            type: string
+            description: Destination address for the airdrop
+            example: "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
+          status:
+            type: string
+            description: Status of the airdrop transaction
+            enum: [ pending, completed ]
+          created_at:
+            type: string
+            format: time.Time
+            description: RFC3339 UTC timestamp of the airdrop creation
+            example: "2021-09-01T00:00:00Z"
+          updated_at:
+            type: string
+            format: time.Time
+            description: RFC3339 UTC timestamp of the airdrop successful tx
+            example: "2021-09-01T00:00:00Z"

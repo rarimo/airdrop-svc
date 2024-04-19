@@ -10,6 +10,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/iden3/go-rapidsnark/verifier"
 	"github.com/rarimo/airdrop-svc/internal/config"
+	data "github.com/rarimo/airdrop-svc/internal/data"
 	"github.com/rarimo/airdrop-svc/internal/service/requests"
 	"github.com/rarimo/airdrop-svc/resources"
 	"gitlab.com/distributed_lab/ape"
@@ -20,12 +21,9 @@ import (
 // https://www.openssl.org/docs/man1.1.1/man3/SSL_CTX_set1_sigalgs_list.html
 
 const (
-	SHA1   = "sha1"
-	SHA256 = "sha256"
-
-	SHA256withRSA   = "SHA256withRSA"
-	SHA1withECDSA   = "SHA1withECDSA"
-	SHA256withECDSA = "SHA256withECDSA"
+	sha256rsa   = "SHA256withRSA"
+	sha1ecdsa   = "SHA1withECDSA"
+	sha256ecdsa = "SHA256withECDSA"
 )
 
 func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +55,11 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = ParticipantsQ(r).Transaction(func() error {
-		err = ParticipantsQ(r).Insert(nullifier, req.Data.Attributes.Address)
+		participant, err = ParticipantsQ(r).Insert(data.Participant{
+			Nullifier: nullifier,
+			Address:   req.Data.Attributes.Address,
+			Status:    data.TxStatusPending,
+		})
 		if err != nil {
 			return fmt.Errorf("insert participant: %w", err)
 		}
@@ -70,17 +72,17 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	ape.Render(w, toAirdropResponse(*participant))
 }
 
 func verifyProof(req resources.CreateAirdropRequest, cfg *config.VerifierConfig) error {
 	var key []byte
 	algorithm := signatureAlgorithm(req.Data.Attributes.Algorithm)
 	switch algorithm {
-	case SHA1withECDSA:
-		key = cfg.VerificationKeys[SHA1]
-	case SHA256withRSA, SHA256withECDSA:
-		key = cfg.VerificationKeys[SHA256]
+	case sha1ecdsa:
+		key = cfg.VerificationKeys["sha1"]
+	case sha256rsa, sha256ecdsa:
+		key = cfg.VerificationKeys["sha256"]
 	default:
 		return fmt.Errorf("unsupported algorithm: %s", req.Data.Attributes.Algorithm)
 	}
@@ -95,17 +97,17 @@ func verifyProof(req resources.CreateAirdropRequest, cfg *config.VerifierConfig)
 
 var algorithmsMap = map[string]map[string]string{
 	"SHA1": {
-		"ECDSA": SHA1withECDSA,
+		"ECDSA": sha1ecdsa,
 	},
 	"SHA256": {
-		"RSA":   SHA256withRSA,
-		"ECDSA": SHA256withECDSA,
+		"RSA":   sha256rsa,
+		"ECDSA": sha256ecdsa,
 	},
 }
 
 func signatureAlgorithm(passedAlgorithm string) string {
 	if passedAlgorithm == "rsaEncryption" {
-		return SHA256withRSA
+		return sha256rsa
 	}
 
 	if strings.Contains(strings.ToUpper(passedAlgorithm), "PSS") {

@@ -10,12 +10,19 @@ import (
 	"gitlab.com/distributed_lab/kit/pgdb"
 )
 
+const (
+	TxStatusPending   = "pending"
+	TxStatusCompleted = "completed"
+)
+
 const participantsTable = "participants"
 
 type Participant struct {
 	Nullifier string    `db:"nullifier"`
 	Address   string    `db:"address"`
+	Status    string    `db:"status"`
 	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"created_at"`
 }
 
 type ParticipantsQ struct {
@@ -34,17 +41,19 @@ func (q *ParticipantsQ) New() *ParticipantsQ {
 	return NewParticipantsQ(q.db)
 }
 
-func (q *ParticipantsQ) Insert(nullifier, address string) error {
+func (q *ParticipantsQ) Insert(p Participant) (*Participant, error) {
+	var res Participant
 	stmt := squirrel.Insert(participantsTable).SetMap(map[string]interface{}{
-		"nullifier": nullifier,
-		"address":   address,
-	})
+		"nullifier": p.Nullifier,
+		"address":   p.Address,
+		"status":    p.Status,
+	}).Suffix("RETURNING *")
 
-	if err := q.db.Exec(stmt); err != nil {
-		return fmt.Errorf("insert participant %s: %w", nullifier, err)
+	if err := q.db.Get(&res, stmt); err != nil {
+		return nil, fmt.Errorf("insert participant %+v: %w", p, err)
 	}
 
-	return nil
+	return &res, nil
 }
 
 func (q *ParticipantsQ) Transaction(fn func() error) error {
