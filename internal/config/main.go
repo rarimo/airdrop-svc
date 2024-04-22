@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/rarimo/saver-grpc-lib/broadcaster"
+	"github.com/rarimo/airdrop-svc/internal/broadcaster"
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"
 	"gitlab.com/distributed_lab/kit/pgdb"

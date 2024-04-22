@@ -12,17 +12,16 @@ import (
 	"fmt"
 	"time"
 
-	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/rarimo/airdrop-svc/internal/data"
-	"gitlab.com/distributed_lab/logan/v3"
-
 	clienttx "github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/types"
 	client "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/rarimo/airdrop-svc/internal/data"
 	ethermint "github.com/rarimo/rarimo-core/ethermint/types"
+	"gitlab.com/distributed_lab/logan/v3"
 	"gitlab.com/distributed_lab/running"
 )
 
@@ -34,7 +33,6 @@ type Runner struct {
 	Config
 }
 
-// TODO: run in CLI
 func Run(ctx context.Context, cfg config) {
 	log := cfg.Log().WithField("service", "builtin-broadcaster")
 	log.Info("Starting service")
@@ -49,7 +47,7 @@ func Run(ctx context.Context, cfg config) {
 }
 
 func (r *Runner) run(ctx context.Context) error {
-	participants, err := r.participants.New().Limit(r.queryLimit).Select()
+	participants, err := r.participants.New().FilterByStatus(data.TxStatusPending).Limit(r.queryLimit).Select()
 	if err != nil {
 		return fmt.Errorf("select participants: %w", err)
 	}
@@ -58,7 +56,6 @@ func (r *Runner) run(ctx context.Context) error {
 	}
 	r.log.Debugf("Got %d participants to broadcast airdrop transactions", len(participants))
 
-	// TODO: handle errors: whether we should delete the participant or assign a failed status (hard)
 	for _, participant := range participants {
 		log := r.log.WithField("participant_nullifier", participant.Nullifier)
 
@@ -80,11 +77,13 @@ func (r *Runner) run(ctx context.Context) error {
 			continue
 		}
 
-		if err = r.broadcastTx(ctx, tx); err != nil {
-			log.WithError(err).Error("Failed to broadcast tx")
+		if err = r.broadcastTx(ctx, tx); err == nil {
 			continue
 		}
 
+		log.WithError(err).Error("Failed to broadcast tx")
+
+		// TODO: handle errors: whether we should delete the participant or assign a failed status (hard)
 		if err = r.participants.New().Delete(participant.Nullifier); err != nil {
 			log.WithError(err).Error("Failed to delete successful tx")
 			continue

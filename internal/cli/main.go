@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
+	"github.com/rarimo/airdrop-svc/internal/broadcaster"
 	"github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/internal/service"
 	"gitlab.com/distributed_lab/kit/kv"
@@ -53,6 +54,7 @@ func Run(args []string) bool {
 	switch cmd {
 	case serviceCmd.FullCommand():
 		run(service.Run)
+		run(func(context.Context, *config.Config) { broadcaster.Run(ctx, cfg) })
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(cfg)
 	case migrateDownCmd.FullCommand():

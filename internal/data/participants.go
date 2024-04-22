@@ -22,7 +22,7 @@ type Participant struct {
 	Address   string    `db:"address"`
 	Status    string    `db:"status"`
 	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type ParticipantsQ struct {

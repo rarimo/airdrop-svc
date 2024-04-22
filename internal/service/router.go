@@ -19,8 +19,6 @@ func Run(ctx context.Context, cfg *config.Config) {
 		ape.LoganMiddleware(cfg.Log()),
 		ape.CtxMiddleware(
 			handlers.CtxLog(cfg.Log()),
-			handlers.CtxAirdropAmount(cfg.AirdropAmount()),
-			handlers.CtxBroadcaster(cfg.Broadcaster()),
 			handlers.CtxVerifier(cfg.Verifier()),
 		),
 		handlers.DBCloneMiddleware(cfg.DB()),

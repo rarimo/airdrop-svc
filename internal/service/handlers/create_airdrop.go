@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	cosmos "github.com/cosmos/cosmos-sdk/types"
-	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/iden3/go-rapidsnark/verifier"
 	"github.com/rarimo/airdrop-svc/internal/config"
@@ -54,21 +52,13 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = ParticipantsQ(r).Transaction(func() error {
-		participant, err = ParticipantsQ(r).Insert(data.Participant{
-			Nullifier: nullifier,
-			Address:   req.Data.Attributes.Address,
-			Status:    data.TxStatusPending,
-		})
-		if err != nil {
-			return fmt.Errorf("insert participant: %w", err)
-		}
-		// TODO: do not broadcast
-		return broadcastWithdrawalTx(req, r)
+	participant, err = ParticipantsQ(r).Insert(data.Participant{
+		Nullifier: nullifier,
+		Address:   req.Data.Attributes.Address,
+		Status:    data.TxStatusPending,
 	})
-
 	if err != nil {
-		Log(r).WithError(err).Error("Failed to save and perform airdrop")
+		Log(r).WithError(err).WithField("nullifier", nullifier).Errorf("Failed to insert participant")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
@@ -128,20 +118,4 @@ func signatureAlgorithm(passedAlgorithm string) string {
 	}
 
 	return ""
-}
-
-func broadcastWithdrawalTx(req resources.CreateAirdropRequest, r *http.Request) error {
-	urmo := AirdropAmount(r)
-	tx := &bank.MsgSend{
-		FromAddress: Broadcaster(r).Sender(),
-		ToAddress:   req.Data.Attributes.Address,
-		Amount:      cosmos.NewCoins(cosmos.NewInt64Coin("urmo", urmo)),
-	}
-
-	err := Broadcaster(r).BroadcastTx(r.Context(), tx)
-	if err != nil {
-		return fmt.Errorf("broadcast withdrawal tx: %w", err)
-	}
-
-	return nil
 }
