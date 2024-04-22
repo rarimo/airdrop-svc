@@ -14,6 +14,7 @@ type ctxKey int
 const (
 	logCtxKey ctxKey = iota
 	participantsQCtxKey
+	airdropAmountCtxKey
 	verifierCtxKey
 )
 
@@ -35,6 +36,16 @@ func CtxParticipantsQ(q *data.ParticipantsQ) func(context.Context) context.Conte
 
 func ParticipantsQ(r *http.Request) *data.ParticipantsQ {
 	return r.Context().Value(participantsQCtxKey).(*data.ParticipantsQ).New()
+}
+
+func CtxAirdropAmount(amount string) func(context.Context) context.Context {
+	return func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, airdropAmountCtxKey, amount)
+	}
+}
+
+func AirdropAmount(r *http.Request) string {
+	return r.Context().Value(airdropAmountCtxKey).(string)
 }
 
 func CtxVerifier(entry *config.VerifierConfig) func(context.Context) context.Context {

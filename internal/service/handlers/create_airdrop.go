@@ -56,6 +56,7 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		Nullifier: nullifier,
 		Address:   req.Data.Attributes.Address,
 		Status:    data.TxStatusPending,
+		Amount:    AirdropAmount(r),
 	})
 	if err != nil {
 		Log(r).WithError(err).WithField("nullifier", nullifier).Errorf("Failed to insert participant")

@@ -9,7 +9,7 @@ listener:
   addr: localhost:8000
 
 broadcaster:
-  airdrop_amount: 100urmo
+  airdrop_amount: 100stake
   cosmos_rpc: rpc_url
   chain_id: chain_id
   sender_private_key: priv_key

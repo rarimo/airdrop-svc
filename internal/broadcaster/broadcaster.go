@@ -59,38 +59,56 @@ func (r *Runner) run(ctx context.Context) error {
 	for _, participant := range participants {
 		log := r.log.WithField("participant_nullifier", participant.Nullifier)
 
-		tx, err := r.genTx(ctx, 0, participant)
-		if err != nil {
-			log.WithError(err).Error("Failed to generate tx")
-			continue
-		}
-
-		gasUsed, err := r.simulateTx(ctx, tx)
-		if err != nil {
-			log.WithError(err).Error("Failed to simulate tx")
-			continue
-		}
-
-		tx, err = r.genTx(ctx, gasUsed*3, participant)
-		if err != nil {
-			log.WithError(err).Error("Failed to generate tx after simulation")
-			continue
-		}
-
-		if err = r.broadcastTx(ctx, tx); err == nil {
-			continue
-		}
-
-		log.WithError(err).Error("Failed to broadcast tx")
-
-		// TODO: handle errors: whether we should delete the participant or assign a failed status (hard)
-		if err = r.participants.New().Delete(participant.Nullifier); err != nil {
-			log.WithError(err).Error("Failed to delete successful tx")
+		if err := r.handleParticipant(ctx, participant); err != nil {
+			log.WithError(err).Error("Failed to handle participant")
 			continue
 		}
 	}
 
 	return nil
+}
+
+func (r *Runner) handleParticipant(ctx context.Context, participant data.Participant) error {
+	tx, err := r.createAirdropTx(ctx, participant)
+	if err != nil {
+		return fmt.Errorf("creating airdrop tx: %w", err)
+	}
+
+	txHash, err := r.broadcastTx(ctx, tx)
+	if err != nil {
+		err = r.participants.New().UpdateStatus(participant.Nullifier, txHash, data.TxStatusFailed)
+		if err != nil {
+			return fmt.Errorf("update participant failed tx status: %w", err)
+		}
+
+		return fmt.Errorf("broadcast tx: %w", err)
+	}
+
+	err = r.participants.New().UpdateStatus(participant.Nullifier, txHash, data.TxStatusCompleted)
+	if err != nil {
+		return fmt.Errorf("update participant completed tx status: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Runner) createAirdropTx(ctx context.Context, participant data.Participant) ([]byte, error) {
+	tx, err := r.genTx(ctx, 0, participant)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate tx: %w", err)
+	}
+
+	gasUsed, err := r.simulateTx(ctx, tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to simulate tx: %w", err)
+	}
+
+	tx, err = r.genTx(ctx, gasUsed*3, participant)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate tx after simulation: %w", err)
+	}
+
+	return tx, nil
 }
 
 func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant) ([]byte, error) {
@@ -159,28 +177,28 @@ func (r *Runner) simulateTx(ctx context.Context, tx []byte) (gasUsed uint64, err
 	return sim.GasInfo.GasUsed, nil
 }
 
-func (r *Runner) broadcastTx(ctx context.Context, tx []byte) error {
+func (r *Runner) broadcastTx(ctx context.Context, tx []byte) (string, error) {
 	grpcRes, err := r.txClient.BroadcastTx(ctx, &client.BroadcastTxRequest{
 		Mode:    client.BroadcastMode_BROADCAST_MODE_BLOCK,
 		TxBytes: tx,
 	})
 	if err != nil {
-		return fmt.Errorf("send tx: %w", err)
+		return "", fmt.Errorf("send tx: %w", err)
 	}
 	r.log.Debugf("Submitted transaction to the core: %s", grpcRes.TxResponse.TxHash)
 
 	if grpcRes.TxResponse.Code != txCodeSuccess {
-		return fmt.Errorf("got error code: %d, info: %s, log: %s", grpcRes.TxResponse.Code, grpcRes.TxResponse.Info, grpcRes.TxResponse.RawLog)
+		return grpcRes.TxResponse.TxHash, fmt.Errorf("got error code: %d, info: %s, log: %s", grpcRes.TxResponse.Code, grpcRes.TxResponse.Info, grpcRes.TxResponse.RawLog)
 	}
 
-	return nil
+	return grpcRes.TxResponse.TxHash, nil
 }
 
 func (r *Runner) buildTransferTx(p data.Participant) (types.Tx, error) {
 	tx := &bank.MsgSend{
 		FromAddress: r.senderAddress,
 		ToAddress:   p.Address,
-		Amount:      r.airdropCoins,
+		Amount:      r.AirdropCoins,
 	}
 
 	builder := r.txConfig.NewTxBuilder()

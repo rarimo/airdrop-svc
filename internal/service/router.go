@@ -20,6 +20,7 @@ func Run(ctx context.Context, cfg *config.Config) {
 		ape.CtxMiddleware(
 			handlers.CtxLog(cfg.Log()),
 			handlers.CtxVerifier(cfg.Verifier()),
+			handlers.CtxAirdropAmount(cfg.Broadcaster().AirdropCoins.String()),
 		),
 		handlers.DBCloneMiddleware(cfg.DB()),
 	)

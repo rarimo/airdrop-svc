@@ -33,13 +33,14 @@ type config interface {
 }
 
 type Config struct {
+	AirdropCoins types.Coins
+
 	sender        cryptotypes.PrivKey
 	senderAddress string
 	chainID       string
 	txConfig      sdkclient.TxConfig
 	txClient      txclient.ServiceClient
 	auth          authtypes.QueryClient
-	airdropCoins  types.Coins
 	queryLimit    uint64
 }
 
@@ -112,7 +113,7 @@ func (b *broadcasterer) Broadcaster() Config {
 			),
 			txClient:     txclient.NewServiceClient(cosmosRPC),
 			auth:         authtypes.NewQueryClient(cosmosRPC),
-			airdropCoins: amount,
+			AirdropCoins: amount,
 			queryLimit:   queryLimit,
 		}
 	}).(Config)
