@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/btcsuite/btcutil/bech32"
+	"github.com/cosmos/cosmos-sdk/types"
 	val "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/resources"
@@ -48,11 +48,6 @@ func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resource
 		return req, err
 	}
 
-	_, addrBytes, err := bech32.DecodeToBase256(attr.Address)
-	if err != nil {
-		return req, newDecodeError("data/attributes/address", err)
-	}
-
 	eventID, ok := new(big.Int).SetString(signals[pubSignalEventID], 10)
 	if !ok {
 		return req, newDecodeError(
@@ -62,8 +57,9 @@ func NewCreateAirdrop(r *http.Request, cfg *config.VerifierConfig) (req resource
 	}
 
 	var (
-		addrDec     = encodeInt(addrBytes)
-		citizenship = decodeInt(signals[pubSignalCitizenship])
+		addrBytes, _ = types.AccAddressFromBech32(attr.Address)
+		addrDec      = encodeInt(addrBytes)
+		citizenship  = decodeInt(signals[pubSignalCitizenship])
 	)
 
 	return req, val.Errors{
