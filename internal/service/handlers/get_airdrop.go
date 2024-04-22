@@ -47,6 +47,8 @@ func toAirdropResponse(p data.Participant) resources.AirdropResponse {
 				Status:    p.Status,
 				CreatedAt: p.CreatedAt,
 				UpdatedAt: p.UpdatedAt,
+				Amount:    p.Amount,
+				TxHash:    p.TxHash,
 			},
 		},
 	}

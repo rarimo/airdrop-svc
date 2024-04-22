@@ -9,6 +9,8 @@ allOf:
         required:
           - address
           - status
+          - amount
+          - tx_hash
           - created_at
           - updated_at
         properties:
@@ -30,3 +32,11 @@ allOf:
             format: time.Time
             description: RFC3339 UTC timestamp of the airdrop successful tx
             example: "2021-09-01T00:00:00Z"
+          amount:
+            type: string
+            description: Amount of airdropped coins
+            example: "100stake"
+          tx_hash:
+            type: string
+            description: Hash of the airdrop transaction
+            example: "F1CC0E80E151A67F75E41F2CDBF07920C29C9A3CDB6131B2A23A7C9D1964AD0B"

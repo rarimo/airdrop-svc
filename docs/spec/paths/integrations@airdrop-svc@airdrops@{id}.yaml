@@ -1,8 +1,8 @@
 get:
   tags:
     - Airdrop
-  summary: Create airdrop
-  description: Create an airdrop for unique user. The proof will be verified.
+  summary: Get an airdrop
+  description: Get an airdrop for unique user.
   operationId: createAirdrop
   parameters:
     - in: path
