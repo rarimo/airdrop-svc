@@ -54,7 +54,7 @@ func Run(args []string) bool {
 	switch cmd {
 	case serviceCmd.FullCommand():
 		run(service.Run)
-		run(func(context.Context, *config.Config) { broadcaster.Run(ctx, cfg) })
+		run(broadcaster.Run)
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(cfg)
 	case migrateDownCmd.FullCommand():

@@ -19,6 +19,7 @@ import (
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
+	cfg "github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/internal/data"
 	ethermint "github.com/rarimo/rarimo-core/ethermint/types"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -33,7 +34,7 @@ type Runner struct {
 	Config
 }
 
-func Run(ctx context.Context, cfg config) {
+func Run(ctx context.Context, cfg *cfg.Config) {
 	log := cfg.Log().WithField("service", "builtin-broadcaster")
 	log.Info("Starting service")
 
