@@ -1,4 +1,4 @@
-package broadcaster
+package config
 
 import (
 	"fmt"
@@ -19,33 +19,25 @@ import (
 	"gitlab.com/distributed_lab/figure/v3"
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"
-	"gitlab.com/distributed_lab/kit/pgdb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 )
 
 const accountPrefix = "rarimo"
 
-type config interface {
-	comfig.Logger
-	pgdb.Databaser
-	Broadcasterer
-}
-
-type Config struct {
-	AirdropCoins types.Coins
-
-	sender        cryptotypes.PrivKey
-	senderAddress string
-	chainID       string
-	txConfig      sdkclient.TxConfig
-	txClient      txclient.ServiceClient
-	auth          authtypes.QueryClient
-	queryLimit    uint64
+type Broadcaster struct {
+	AirdropCoins  types.Coins
+	Sender        cryptotypes.PrivKey
+	SenderAddress string
+	ChainID       string
+	TxConfig      sdkclient.TxConfig
+	TxClient      txclient.ServiceClient
+	Auth          authtypes.QueryClient
+	QueryLimit    uint64
 }
 
 type Broadcasterer interface {
-	Broadcaster() Config
+	Broadcaster() Broadcaster
 }
 
 type broadcasterer struct {
@@ -53,13 +45,13 @@ type broadcasterer struct {
 	once   comfig.Once
 }
 
-func New(getter kv.Getter) Broadcasterer {
+func NewBroadcaster(getter kv.Getter) Broadcasterer {
 	return &broadcasterer{
 		getter: getter,
 	}
 }
 
-func (b *broadcasterer) Broadcaster() Config {
+func (b *broadcasterer) Broadcaster() Broadcaster {
 	return b.once.Do(func() interface{} {
 		var cfg struct {
 			AirdropAmount    string `fig:"airdrop_amount,required"`
@@ -103,18 +95,18 @@ func (b *broadcasterer) Broadcaster() Config {
 			queryLimit = cfg.QueryLimit
 		}
 
-		return Config{
-			sender:        sender,
-			senderAddress: address,
-			chainID:       cfg.ChainID,
-			txConfig: authtx.NewTxConfig(
+		return Broadcaster{
+			Sender:        sender,
+			SenderAddress: address,
+			ChainID:       cfg.ChainID,
+			TxConfig: authtx.NewTxConfig(
 				codec.NewProtoCodec(codectypes.NewInterfaceRegistry()),
 				[]signing.SignMode{signing.SignMode_SIGN_MODE_DIRECT},
 			),
-			txClient:     txclient.NewServiceClient(cosmosRPC),
-			auth:         authtypes.NewQueryClient(cosmosRPC),
+			TxClient:     txclient.NewServiceClient(cosmosRPC),
+			Auth:         authtypes.NewQueryClient(cosmosRPC),
 			AirdropCoins: amount,
-			queryLimit:   queryLimit,
+			QueryLimit:   queryLimit,
 		}
-	}).(Config)
+	}).(Broadcaster)
 }

@@ -19,7 +19,7 @@ import (
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/types"
-	cfg "github.com/rarimo/airdrop-svc/internal/config"
+	"github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/internal/data"
 	ethermint "github.com/rarimo/rarimo-core/ethermint/types"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -31,24 +31,24 @@ const txCodeSuccess = 0
 type Runner struct {
 	log          *logan.Entry
 	participants *data.ParticipantsQ
-	Config
+	config.Broadcaster
 }
 
-func Run(ctx context.Context, cfg *cfg.Config) {
+func Run(ctx context.Context, cfg *config.Config) {
 	log := cfg.Log().WithField("service", "builtin-broadcaster")
 	log.Info("Starting service")
 
 	r := &Runner{
 		log:          log,
 		participants: data.NewParticipantsQ(cfg.DB().Clone()),
-		Config:       cfg.Broadcaster(),
+		Broadcaster:  cfg.Broadcaster(),
 	}
 
 	running.WithBackOff(ctx, r.log, "builtin-broadcaster", r.run, 5*time.Second, 5*time.Second, 5*time.Second)
 }
 
 func (r *Runner) run(ctx context.Context) error {
-	participants, err := r.participants.New().FilterByStatus(data.TxStatusPending).Limit(r.queryLimit).Select()
+	participants, err := r.participants.New().FilterByStatus(data.TxStatusPending).Limit(r.QueryLimit).Select()
 	if err != nil {
 		return fmt.Errorf("select participants: %w", err)
 	}
@@ -118,7 +118,7 @@ func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant)
 		return nil, fmt.Errorf("build transfer tx: %w", err)
 	}
 
-	builder, err := r.txConfig.WrapTxBuilder(tx)
+	builder, err := r.TxConfig.WrapTxBuilder(tx)
 	if err != nil {
 		return nil, fmt.Errorf("wrap tx with builder: %w", err)
 	}
@@ -126,7 +126,7 @@ func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant)
 	// there are no fees on the mainnet now, and applies fees requires a lot of work
 	builder.SetFeeAmount(types.Coins{types.NewInt64Coin("urmo", 0)})
 
-	resp, err := r.auth.Account(ctx, &authtypes.QueryAccountRequest{Address: r.senderAddress})
+	resp, err := r.Auth.Account(ctx, &authtypes.QueryAccountRequest{Address: r.SenderAddress})
 	if err != nil {
 		return nil, fmt.Errorf("get sender account: %w", err)
 	}
@@ -137,9 +137,9 @@ func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant)
 	}
 
 	err = builder.SetSignatures(signing.SignatureV2{
-		PubKey: r.sender.PubKey(),
+		PubKey: r.Sender.PubKey(),
 		Data: &signing.SingleSignatureData{
-			SignMode:  r.txConfig.SignModeHandler().DefaultMode(),
+			SignMode:  r.TxConfig.SignModeHandler().DefaultMode(),
 			Signature: nil,
 		},
 		Sequence: account.Sequence,
@@ -149,13 +149,13 @@ func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant)
 	}
 
 	signerData := xauthsigning.SignerData{
-		ChainID:       r.chainID,
+		ChainID:       r.ChainID,
 		AccountNumber: account.AccountNumber,
 		Sequence:      account.Sequence,
 	}
 	sigV2, err := clienttx.SignWithPrivKey(
-		r.txConfig.SignModeHandler().DefaultMode(), signerData,
-		builder, r.sender, r.txConfig, account.Sequence,
+		r.TxConfig.SignModeHandler().DefaultMode(), signerData,
+		builder, r.Sender, r.TxConfig, account.Sequence,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("sign with private key: %w", err)
@@ -165,11 +165,11 @@ func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant)
 		return nil, fmt.Errorf("set signatures V2: %w", err)
 	}
 
-	return r.txConfig.TxEncoder()(builder.GetTx())
+	return r.TxConfig.TxEncoder()(builder.GetTx())
 }
 
 func (r *Runner) simulateTx(ctx context.Context, tx []byte) (gasUsed uint64, err error) {
-	sim, err := r.txClient.Simulate(ctx, &client.SimulateRequest{TxBytes: tx})
+	sim, err := r.TxClient.Simulate(ctx, &client.SimulateRequest{TxBytes: tx})
 	if err != nil {
 		return 0, fmt.Errorf("simulate tx: %w", err)
 	}
@@ -179,7 +179,7 @@ func (r *Runner) simulateTx(ctx context.Context, tx []byte) (gasUsed uint64, err
 }
 
 func (r *Runner) broadcastTx(ctx context.Context, tx []byte) (string, error) {
-	grpcRes, err := r.txClient.BroadcastTx(ctx, &client.BroadcastTxRequest{
+	grpcRes, err := r.TxClient.BroadcastTx(ctx, &client.BroadcastTxRequest{
 		Mode:    client.BroadcastMode_BROADCAST_MODE_BLOCK,
 		TxBytes: tx,
 	})
@@ -197,12 +197,12 @@ func (r *Runner) broadcastTx(ctx context.Context, tx []byte) (string, error) {
 
 func (r *Runner) buildTransferTx(p data.Participant) (types.Tx, error) {
 	tx := &bank.MsgSend{
-		FromAddress: r.senderAddress,
+		FromAddress: r.SenderAddress,
 		ToAddress:   p.Address,
 		Amount:      r.AirdropCoins,
 	}
 
-	builder := r.txConfig.NewTxBuilder()
+	builder := r.TxConfig.NewTxBuilder()
 	if err := builder.SetMsgs(tx); err != nil {
 		return nil, fmt.Errorf("set messages: %w", err)
 	}
