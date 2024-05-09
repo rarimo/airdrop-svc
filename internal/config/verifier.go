@@ -2,11 +2,13 @@ package config
 
 import (
 	"fmt"
-	"os"
 
+	zk "github.com/rarimo/zkverifier-kit"
 	"gitlab.com/distributed_lab/figure/v3"
 	"gitlab.com/distributed_lab/kit/kv"
 )
+
+const proofEventIDValue = "ac42d1a986804618c7a793fbe814d9b31e47be51e082806363dca6958f3062"
 
 type VerifierConfig struct {
 	VerificationKeys    map[string][]byte
@@ -14,12 +16,12 @@ type VerifierConfig struct {
 	AllowedCitizenships []interface{} // more convenient to use for validation, replace on need
 }
 
-func (c *Config) Verifier() *VerifierConfig {
+func (c *Config) Verifier() *zk.Verifier {
 	return c.verifier.Do(func() interface{} {
 		var cfg struct {
-			VerificationKeysPaths map[string]string `fig:"verification_keys_paths,required"`
-			AllowedAge            int               `fig:"allowed_age,required"`
-			AllowedCitizenships   []string          `fig:"allowed_citizenships,required"`
+			VerificationKeyPath string   `fig:"verification_key_path,required"`
+			AllowedAge          int      `fig:"allowed_age,required"`
+			AllowedCitizenships []string `fig:"allowed_citizenships,required"`
 		}
 
 		err := figure.
@@ -31,24 +33,17 @@ func (c *Config) Verifier() *VerifierConfig {
 			panic(fmt.Errorf("failed to figure out verifier: %w", err))
 		}
 
-		verificationKeys := make(map[string][]byte)
-		for algo, path := range cfg.VerificationKeysPaths {
-			verificationKey, err := os.ReadFile(path)
-			if err != nil {
-				panic(fmt.Errorf("failed to read verification key file: %w", err))
-			}
-			verificationKeys[algo] = verificationKey
+		v, err := zk.NewPassportVerifier(nil,
+			zk.WithVerificationKeyFile(cfg.VerificationKeyPath),
+			zk.WithCitizenships(cfg.AllowedCitizenships...),
+			zk.WithAgeAbove(cfg.AllowedAge),
+			zk.WithEventID(proofEventIDValue),
+			zk.WithRootVerifier(c.RootVerifier.RootVerifier()))
+
+		if err != nil {
+			panic(fmt.Errorf("failed to initialize passport verifier: %w", err))
 		}
 
-		citizenships := make([]interface{}, len(cfg.AllowedCitizenships))
-		for i, ctz := range cfg.AllowedCitizenships {
-			citizenships[i] = ctz
-		}
-
-		return &VerifierConfig{
-			VerificationKeys:    verificationKeys,
-			AllowedAge:          cfg.AllowedAge,
-			AllowedCitizenships: citizenships,
-		}
-	}).(*VerifierConfig)
+		return v
+	}).(*zk.Verifier)
 }

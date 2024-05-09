@@ -16,8 +16,12 @@ broadcaster:
   query_limit: 10
 
 verifier:
-  verification_keys_paths:
-    sha1: "./verification_key.json"
-    sha256: "./verification_key.json"
+  verification_key_path: "./verification_key.json"
   allowed_age: 18
   allowed_citizenships: ["UKR"]
+
+csca_verifier:
+  rpc: rpc_url
+  contract: registration_contract_address
+  request_timeout: 10s
+  cache_expiration: 10s
