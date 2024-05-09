@@ -77,9 +77,9 @@ func (r *Runner) handleParticipant(ctx context.Context, participant data.Partici
 
 	txHash, err := r.broadcastTx(ctx, tx)
 	if err != nil {
-		err = r.participants.New().UpdateStatus(participant.Nullifier, txHash, data.TxStatusFailed)
-		if err != nil {
-			return fmt.Errorf("update participant failed tx status: %w", err)
+		err2 := r.participants.New().UpdateStatus(participant.Nullifier, txHash, data.TxStatusFailed)
+		if err2 != nil {
+			return fmt.Errorf("update participant failed tx status: %w (broadcast tx error: %w)", err2, err)
 		}
 
 		return fmt.Errorf("broadcast tx: %w", err)

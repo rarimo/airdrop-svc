@@ -16,9 +16,8 @@ func NewCreateAirdrop(r *http.Request) (req resources.CreateAirdropRequest, err 
 
 	attr := req.Data.Attributes
 	return req, val.Errors{
-		"data/type":                 val.Validate(req.Data.Type, val.Required, val.In(resources.CREATE_AIRDROP)),
-		"data/attributes/address":   val.Validate(attr.Address, val.Required, isRarimoAddr),
-		"data/attributes/algorithm": val.Validate(attr.Algorithm, val.Required),
+		"data/type":               val.Validate(req.Data.Type, val.Required, val.In(resources.CREATE_AIRDROP)),
+		"data/attributes/address": val.Validate(attr.Address, val.Required, isRarimoAddr),
 	}.Filter()
 }
 

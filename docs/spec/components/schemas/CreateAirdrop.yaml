@@ -9,17 +9,12 @@ allOf:
         type: object
         required:
           - address
-          - algorithm
           - zk_proof
         properties:
           address:
             type: string
             description: Destination address for the airdrop
             example: "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
-          algorithm:
-            type: string
-            description: Signing algorithm used in proof. The value from passport document SOD is assumed.
-            example: "sha256_ecdsa"
           zk_proof:
             type: string
             format: types.ZKProof

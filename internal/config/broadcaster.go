@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/tls"
 	"fmt"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -71,7 +73,10 @@ func (b *broadcasterer) Broadcaster() Broadcaster {
 			panic(fmt.Errorf("broadcaster: invalid airdrop amount: %w", err))
 		}
 
-		cosmosRPC, err := grpc.Dial(cfg.CosmosRPC, grpc.WithInsecure(), grpc.WithKeepaliveParams(keepalive.ClientParameters{
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify: true,
+		}
+		cosmosRPC, err := grpc.Dial(cfg.CosmosRPC, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)), grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:    10 * time.Second, // wait time before ping if no activity
 			Timeout: 20 * time.Second, // ping timeout
 		}))

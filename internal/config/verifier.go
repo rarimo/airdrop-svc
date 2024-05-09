@@ -8,7 +8,7 @@ import (
 	"gitlab.com/distributed_lab/kit/kv"
 )
 
-const proofEventIDValue = "ac42d1a986804618c7a793fbe814d9b31e47be51e082806363dca6958f3062"
+const proofEventIDValue = "304358862882731539112827930982999386691702727710421481944329166126417129570"
 
 type VerifierConfig struct {
 	VerificationKeys    map[string][]byte
@@ -38,7 +38,8 @@ func (c *Config) Verifier() *zk.Verifier {
 			zk.WithCitizenships(cfg.AllowedCitizenships...),
 			zk.WithAgeAbove(cfg.AllowedAge),
 			zk.WithEventID(proofEventIDValue),
-			zk.WithRootVerifier(c.RootVerifier.RootVerifier()))
+			zk.WithRootVerifier(c.RootVerifier.RootVerifier()),
+		)
 
 		if err != nil {
 			panic(fmt.Errorf("failed to initialize passport verifier: %w", err))

@@ -9,8 +9,6 @@ import "github.com/iden3/go-rapidsnark/types"
 type CreateAirdropAttributes struct {
 	// Destination address for the airdrop
 	Address string `json:"address"`
-	// Signing algorithm used in proof. The value from passport document SOD is assumed.
-	Algorithm string `json:"algorithm"`
 	// ZK-proof of the passport data
 	ZkProof types.ZKProof `json:"zk_proof"`
 }
