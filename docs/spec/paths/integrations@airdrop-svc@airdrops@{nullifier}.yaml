@@ -11,7 +11,7 @@ get:
       required: true
       schema:
         type: string
-        example: "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
+        example: "48274927346589028382136333339484890005759403737728382873187445992373311929001"
   responses:
     200:
       content:
