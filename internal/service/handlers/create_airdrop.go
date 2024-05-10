@@ -24,7 +24,10 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 
 	nullifier := req.Data.Attributes.ZkProof.PubSignals[zk.PubSignalNullifier]
 
-	airdrop, err := AirdropsQ(r).FilterByNullifier(nullifier).Get()
+	airdrop, err := AirdropsQ(r).
+		FilterByNullifier(nullifier).
+		FilterByStatus(data.TxStatusCompleted).
+		Get()
 	if err != nil {
 		Log(r).WithError(err).Error("Failed to get airdrop by nullifier")
 		ape.RenderErr(w, problems.InternalError())
