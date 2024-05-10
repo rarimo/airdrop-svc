@@ -20,7 +20,7 @@ verifier:
   allowed_age: 18
   allowed_citizenships: ["UKR"]
 
-csca_verifier:
+root_verifier:
   rpc: evm_rpc_url
   contract: registration_contract_address
   request_timeout: 10s

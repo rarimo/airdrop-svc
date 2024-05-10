@@ -10,12 +10,6 @@ import (
 
 const proofEventIDValue = "304358862882731539112827930982999386691702727710421481944329166126417129570"
 
-type VerifierConfig struct {
-	VerificationKeys    map[string][]byte
-	AllowedAge          int
-	AllowedCitizenships []interface{} // more convenient to use for validation, replace on need
-}
-
 func (c *Config) Verifier() *zk.Verifier {
 	return c.verifier.Do(func() interface{} {
 		var cfg struct {
@@ -38,7 +32,7 @@ func (c *Config) Verifier() *zk.Verifier {
 			zk.WithCitizenships(cfg.AllowedCitizenships...),
 			zk.WithAgeAbove(cfg.AllowedAge),
 			zk.WithEventID(proofEventIDValue),
-			zk.WithRootVerifier(c.RootVerifier.RootVerifier()),
+			zk.WithRootVerifier(c.ProvideVerifier()),
 		)
 
 		if err != nil {

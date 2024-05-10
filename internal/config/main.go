@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/rarimo/zkverifier-kit/csca"
+	"github.com/rarimo/zkverifier-kit/identity"
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"
 	"gitlab.com/distributed_lab/kit/pgdb"
@@ -11,7 +11,7 @@ type Config struct {
 	comfig.Logger
 	pgdb.Databaser
 	comfig.Listenerer
-	csca.RootVerifier
+	identity.VerifierProvider
 	Broadcasterer
 
 	airdrop  comfig.Once
@@ -21,11 +21,11 @@ type Config struct {
 
 func New(getter kv.Getter) *Config {
 	return &Config{
-		getter:        getter,
-		Databaser:     pgdb.NewDatabaser(getter),
-		Listenerer:    comfig.NewListenerer(getter),
-		Logger:        comfig.NewLogger(getter, comfig.LoggerOpts{}),
-		RootVerifier:  csca.NewRootVerifier(getter),
-		Broadcasterer: NewBroadcaster(getter),
+		getter:           getter,
+		Databaser:        pgdb.NewDatabaser(getter),
+		Listenerer:       comfig.NewListenerer(getter),
+		Logger:           comfig.NewLogger(getter, comfig.LoggerOpts{}),
+		VerifierProvider: identity.NewVerifierProvider(getter),
+		Broadcasterer:    NewBroadcaster(getter),
 	}
 }
