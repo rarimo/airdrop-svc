@@ -24,4 +24,3 @@ root_verifier:
   rpc: evm_rpc_url
   contract: registration_contract_address
   request_timeout: 10s
-  cache_expiration: 10s
