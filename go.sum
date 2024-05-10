@@ -2106,10 +2106,8 @@ github.com/rarimo/cosmos-sdk v0.46.7 h1:jU2PiWzc+19SF02cXM0O0puKPeH1C6Q6t2lzJ9s1
 github.com/rarimo/cosmos-sdk v0.46.7/go.mod h1:fqKqz39U5IlEFb4nbQ72951myztsDzFKKDtffYJ63nk=
 github.com/rarimo/rarimo-core v0.0.0-20231004143803-6b209428ecbf h1:NvYhOErW0d7ohn2YzGxQYKssrgVrKOvjrKL1OBQgCB4=
 github.com/rarimo/rarimo-core v0.0.0-20231004143803-6b209428ecbf/go.mod h1:Onkd0EJP94hw4dT/2KH7QXRwDG4eIGeaMffSjA1i6/s=
-github.com/rarimo/zkverifier-kit v0.1.2-0.20240510102542-60f18741ca16 h1:ayIoIQT299wQyLfj9UvaSBJnNqjzDxfIF9SLJbSBST8=
-github.com/rarimo/zkverifier-kit v0.1.2-0.20240510102542-60f18741ca16/go.mod h1:ROaCxusG9WLNwbqlTBKqZCm8tQrNdnwLyRWtS+yxO8o=
-github.com/rarimo/zkverifier-kit v0.1.2-0.20240510143359-6450da1501cb h1:icee6F6TCLa2ZuqXdRjVRzXAsOjCUrRlQoDPL1ZN1HQ=
-github.com/rarimo/zkverifier-kit v0.1.2-0.20240510143359-6450da1501cb/go.mod h1:ROaCxusG9WLNwbqlTBKqZCm8tQrNdnwLyRWtS+yxO8o=
+github.com/rarimo/zkverifier-kit v0.1.2-0.20240510160559-794b6f41b954 h1:TeqaLhZtA4rZdUbYwDaB3oOrK9Gf1rLKjcjBJID8K9M=
+github.com/rarimo/zkverifier-kit v0.1.2-0.20240510160559-794b6f41b954/go.mod h1:ROaCxusG9WLNwbqlTBKqZCm8tQrNdnwLyRWtS+yxO8o=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 h1:N/ElC8H3+5XpJzTSTfLsJV/mx9Q9g7kxmchpfZyxgzM=
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/regen-network/cosmos-proto v0.3.1 h1:rV7iM4SSFAagvy8RiyhiACbWEGotmqzywPxOvwMdxcg=
