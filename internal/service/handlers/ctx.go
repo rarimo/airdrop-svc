@@ -13,7 +13,7 @@ type ctxKey int
 
 const (
 	logCtxKey ctxKey = iota
-	participantsQCtxKey
+	airdropsQCtxKey
 	airdropAmountCtxKey
 	verifierCtxKey
 )
@@ -28,14 +28,14 @@ func Log(r *http.Request) *logan.Entry {
 	return r.Context().Value(logCtxKey).(*logan.Entry)
 }
 
-func CtxParticipantsQ(q *data.ParticipantsQ) func(context.Context) context.Context {
+func CtxAirdropsQ(q *data.AirdropsQ) func(context.Context) context.Context {
 	return func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, participantsQCtxKey, q)
+		return context.WithValue(ctx, airdropsQCtxKey, q)
 	}
 }
 
-func ParticipantsQ(r *http.Request) *data.ParticipantsQ {
-	return r.Context().Value(participantsQCtxKey).(*data.ParticipantsQ).New()
+func AirdropsQ(r *http.Request) *data.AirdropsQ {
+	return r.Context().Value(airdropsQCtxKey).(*data.AirdropsQ).New()
 }
 
 func CtxAirdropAmount(amount string) func(context.Context) context.Context {

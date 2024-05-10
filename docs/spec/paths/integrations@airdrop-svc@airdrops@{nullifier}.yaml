@@ -3,10 +3,10 @@ get:
     - Airdrop
   summary: Get an airdrop
   description: Get an airdrop for unique user.
-  operationId: createAirdrop
+  operationId: getAirdrop
   parameters:
     - in: path
-      name: id
+      name: nullifier
       description: User nullifier
       required: true
       schema:

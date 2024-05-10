@@ -29,8 +29,8 @@ import (
 const txCodeSuccess = 0
 
 type Runner struct {
-	log          *logan.Entry
-	participants *data.ParticipantsQ
+	log *logan.Entry
+	q   *data.AirdropsQ
 	config.Broadcaster
 }
 
@@ -39,29 +39,28 @@ func Run(ctx context.Context, cfg *config.Config) {
 	log.Info("Starting service")
 
 	r := &Runner{
-		log:          log,
-		participants: data.NewParticipantsQ(cfg.DB().Clone()),
-		Broadcaster:  cfg.Broadcaster(),
+		log:         log,
+		q:           data.NewAirdropsQ(cfg.DB().Clone()),
+		Broadcaster: cfg.Broadcaster(),
 	}
 
 	running.WithBackOff(ctx, r.log, "builtin-broadcaster", r.run, 5*time.Second, 5*time.Second, 5*time.Second)
 }
 
 func (r *Runner) run(ctx context.Context) error {
-	participants, err := r.participants.New().FilterByStatus(data.TxStatusPending).Limit(r.QueryLimit).Select()
+	airdrops, err := r.q.New().FilterByStatus(data.TxStatusPending).Limit(r.QueryLimit).Select()
 	if err != nil {
-		return fmt.Errorf("select participants: %w", err)
+		return fmt.Errorf("select airdrops: %w", err)
 	}
-	if len(participants) == 0 {
+	if len(airdrops) == 0 {
 		return nil
 	}
-	r.log.Debugf("Got %d participants to broadcast airdrop transactions", len(participants))
+	r.log.Debugf("Got %d pending airdrops, broadcasting now", len(airdrops))
 
-	for _, participant := range participants {
-		log := r.log.WithField("participant_nullifier", participant.Nullifier)
-
-		if err := r.handleParticipant(ctx, participant); err != nil {
-			log.WithError(err).Error("Failed to handle participant")
+	for _, drop := range airdrops {
+		if err = r.handlePending(ctx, drop); err != nil {
+			r.log.WithField("airdrop", drop).
+				WithError(err).Error("Failed to handle pending airdrop")
 			continue
 		}
 	}
@@ -69,32 +68,31 @@ func (r *Runner) run(ctx context.Context) error {
 	return nil
 }
 
-func (r *Runner) handleParticipant(ctx context.Context, participant data.Participant) error {
-	tx, err := r.createAirdropTx(ctx, participant)
+func (r *Runner) handlePending(ctx context.Context, airdrop data.Airdrop) (err error) {
+	var txHash string
+
+	defer func() {
+		if err != nil {
+			r.updateAirdropStatus(ctx, airdrop.ID, txHash, data.TxStatusFailed)
+		}
+	}()
+
+	tx, err := r.createAirdropTx(ctx, airdrop)
 	if err != nil {
-		return fmt.Errorf("creating airdrop tx: %w", err)
+		return fmt.Errorf("create airdrop tx: %w", err)
 	}
 
-	txHash, err := r.broadcastTx(ctx, tx)
+	txHash, err = r.broadcastTx(ctx, tx)
 	if err != nil {
-		err2 := r.participants.New().UpdateStatus(participant.Nullifier, txHash, data.TxStatusFailed)
-		if err2 != nil {
-			return fmt.Errorf("update participant failed tx status: %w (broadcast tx error: %w)", err2, err)
-		}
-
 		return fmt.Errorf("broadcast tx: %w", err)
 	}
 
-	err = r.participants.New().UpdateStatus(participant.Nullifier, txHash, data.TxStatusCompleted)
-	if err != nil {
-		return fmt.Errorf("update participant completed tx status: %w", err)
-	}
-
+	r.updateAirdropStatus(ctx, airdrop.ID, txHash, data.TxStatusCompleted)
 	return nil
 }
 
-func (r *Runner) createAirdropTx(ctx context.Context, participant data.Participant) ([]byte, error) {
-	tx, err := r.genTx(ctx, 0, participant)
+func (r *Runner) createAirdropTx(ctx context.Context, airdrop data.Airdrop) ([]byte, error) {
+	tx, err := r.genTx(ctx, 0, airdrop)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate tx: %w", err)
 	}
@@ -104,7 +102,7 @@ func (r *Runner) createAirdropTx(ctx context.Context, participant data.Participa
 		return nil, fmt.Errorf("failed to simulate tx: %w", err)
 	}
 
-	tx, err = r.genTx(ctx, gasUsed*3, participant)
+	tx, err = r.genTx(ctx, gasUsed*3, airdrop)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate tx after simulation: %w", err)
 	}
@@ -112,8 +110,8 @@ func (r *Runner) createAirdropTx(ctx context.Context, participant data.Participa
 	return tx, nil
 }
 
-func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant) ([]byte, error) {
-	tx, err := r.buildTransferTx(p)
+func (r *Runner) genTx(ctx context.Context, gasLimit uint64, airdrop data.Airdrop) ([]byte, error) {
+	tx, err := r.buildTransferTx(airdrop)
 	if err != nil {
 		return nil, fmt.Errorf("build transfer tx: %w", err)
 	}
@@ -123,7 +121,7 @@ func (r *Runner) genTx(ctx context.Context, gasLimit uint64, p data.Participant)
 		return nil, fmt.Errorf("wrap tx with builder: %w", err)
 	}
 	builder.SetGasLimit(gasLimit)
-	// there are no fees on the mainnet now, and applies fees requires a lot of work
+	// there are no fees on the mainnet now, and applying fees requires a lot of work
 	builder.SetFeeAmount(types.Coins{types.NewInt64Coin("urmo", 0)})
 
 	resp, err := r.Auth.Account(ctx, &authtypes.QueryAccountRequest{Address: r.SenderAddress})
@@ -195,10 +193,31 @@ func (r *Runner) broadcastTx(ctx context.Context, tx []byte) (string, error) {
 	return grpcRes.TxResponse.TxHash, nil
 }
 
-func (r *Runner) buildTransferTx(p data.Participant) (types.Tx, error) {
+// If we don't update tx status from pending, having the successful funds
+// transfer, it will be possible to double-spend. With this solution the
+// double-spend may still occur, if the service is restarted before the
+// successful update. There is a better solution with file creation on context
+// cancellation and parsing it on start.
+func (r *Runner) updateAirdropStatus(ctx context.Context, id, txHash, status string) {
+	running.UntilSuccess(ctx, r.log, "tx-status-updater", func(_ context.Context) (bool, error) {
+		var ptr *string
+		if txHash != "" {
+			ptr = &txHash
+		}
+
+		err := r.q.New().Update(id, map[string]any{
+			"status":  status,
+			"tx_hash": ptr,
+		})
+
+		return err == nil, err
+	}, 2*time.Second, 10*time.Second)
+}
+
+func (r *Runner) buildTransferTx(airdrop data.Airdrop) (types.Tx, error) {
 	tx := &bank.MsgSend{
 		FromAddress: r.SenderAddress,
-		ToAddress:   p.Address,
+		ToAddress:   airdrop.Address,
 		Amount:      r.AirdropCoins,
 	}
 

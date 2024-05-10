@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/rarimo/airdrop-svc/internal/data"
 	"github.com/rarimo/airdrop-svc/internal/service/requests"
 	zk "github.com/rarimo/zkverifier-kit"
+	"github.com/rarimo/zkverifier-kit/identity"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
 )
@@ -22,35 +24,41 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 
 	nullifier := req.Data.Attributes.ZkProof.PubSignals[zk.PubSignalNullifier]
 
-	participant, err := ParticipantsQ(r).Get(nullifier)
+	airdrop, err := AirdropsQ(r).FilterByNullifier(nullifier).Get()
 	if err != nil {
-		Log(r).WithError(err).Error("Failed to get participant by ID")
+		Log(r).WithError(err).Error("Failed to get airdrop by nullifier")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
-	if participant != nil {
+	if airdrop != nil {
 		ape.RenderErr(w, problems.Conflict())
 		return
 	}
 
 	err = Verifier(r).VerifyProof(req.Data.Attributes.ZkProof, zk.WithAddress(req.Data.Attributes.Address))
 	if err != nil {
+		if errors.Is(err, identity.ErrContractCall) {
+			Log(r).WithError(err).Error("Failed to verify proof")
+			ape.RenderErr(w, problems.InternalError())
+			return
+		}
+
 		Log(r).WithError(err).Info("Invalid proof")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	participant, err = ParticipantsQ(r).Insert(data.Participant{
+	airdrop, err = AirdropsQ(r).Insert(data.Airdrop{
 		Nullifier: nullifier,
 		Address:   req.Data.Attributes.Address,
-		Status:    data.TxStatusPending,
 		Amount:    AirdropAmount(r),
+		Status:    data.TxStatusPending,
 	})
 	if err != nil {
-		Log(r).WithError(err).WithField("nullifier", nullifier).Errorf("Failed to insert participant")
+		Log(r).WithError(err).Errorf("Failed to insert airdrop")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
 
-	ape.Render(w, toAirdropResponse(*participant))
+	ape.Render(w, toAirdropResponse(*airdrop))
 }

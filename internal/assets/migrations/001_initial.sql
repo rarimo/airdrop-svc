@@ -1,10 +1,18 @@
 -- +migrate Up
-CREATE TABLE participants
+CREATE TYPE tx_status_enum AS ENUM ('pending', 'completed', 'failed');
+
+CREATE TABLE airdrops
 (
-    nullifier  text PRIMARY KEY,
+    id         uuid PRIMARY KEY                     DEFAULT gen_random_uuid(),
+    nullifier  text                        NOT NULL,
     address    text                        NOT NULL,
-    created_at timestamp without time zone NOT NULL default NOW()
+    tx_hash    text,
+    amount     text                        NOT NULL,
+    status     tx_status_enum              NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT NOW(),
+    updated_at timestamp without time zone NOT NULL DEFAULT NOW()
 );
 
 -- +migrate Down
-DROP TABLE participants;
+DROP TABLE airdrops;
+DROP TYPE tx_status_enum;

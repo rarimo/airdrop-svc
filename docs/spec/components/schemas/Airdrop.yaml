@@ -8,9 +8,9 @@ allOf:
         type: object
         required:
           - address
+          - nullifier
           - status
           - amount
-          - tx_hash
           - created_at
           - updated_at
         properties:
@@ -18,6 +18,10 @@ allOf:
             type: string
             description: Destination address for the airdrop
             example: "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
+          nullifier:
+            type: string
+            description: User nullifier
+            example: "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
           status:
             type: string
             description: Status of the airdrop transaction
