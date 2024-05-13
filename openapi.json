@@ -75,23 +75,23 @@
         }
       }
     },
-    "/integrations/airdrop-svc/airdrops/{nullifier}": {
+    "/integrations/airdrop-svc/airdrops/{id}": {
       "get": {
         "tags": [
           "Airdrop"
         ],
         "summary": "Get an airdrop",
         "description": "Get an airdrop for unique user.",
-        "operationId": "getAirdrop",
+        "operationId": "createAirdrop",
         "parameters": [
           {
             "in": "path",
-            "name": "nullifier",
+            "name": "id",
             "description": "User nullifier",
             "required": true,
             "schema": {
               "type": "string",
-              "example": "48274927346589028382136333339484890005759403737728382873187445992373311929001"
+              "example": "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
             }
           }
         ],
@@ -153,9 +153,9 @@
                 "type": "object",
                 "required": [
                   "address",
-                  "nullifier",
                   "status",
                   "amount",
+                  "tx_hash",
                   "created_at",
                   "updated_at"
                 ],
@@ -164,11 +164,6 @@
                     "type": "string",
                     "description": "Destination address for the airdrop",
                     "example": "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
-                  },
-                  "nullifier": {
-                    "type": "string",
-                    "description": "User nullifier",
-                    "example": "48274927346589028382136333339484890005759403737728382873187445992373311929001"
                   },
                   "status": {
                     "type": "string",
@@ -215,8 +210,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Airdrop UUID",
-            "example": "4bf0b086-decf-4ffb-8d30-7c28665adef9"
+            "description": "User nullifier",
+            "example": "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
           },
           "type": {
             "type": "string",
@@ -242,6 +237,7 @@
                 "type": "object",
                 "required": [
                   "address",
+                  "algorithm",
                   "zk_proof"
                 ],
                 "properties": {
@@ -249,6 +245,11 @@
                     "type": "string",
                     "description": "Destination address for the airdrop",
                     "example": "rarimo1qlyq3ej7j7rrkw6sluz658pzne88ymf66vjcap"
+                  },
+                  "algorithm": {
+                    "type": "string",
+                    "description": "Signing algorithm used in proof. The value from passport document SOD is assumed.",
+                    "example": "sha256_ecdsa"
                   },
                   "zk_proof": {
                     "type": "string",
