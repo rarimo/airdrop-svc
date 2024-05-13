@@ -9,8 +9,15 @@ listener:
   addr: localhost:8000
 
 broadcaster:
-  addr: broadcaster
-  sender_account: "rarimo15hcd6tv7pe8hk2re7hu0zg0aphqdm2dtjrs0ds"
+  airdrop_amount: 100stake
+  cosmos_rpc: rpc_url
+  chain_id: chain_id
+  sender_private_key: priv_key
+  query_limit: 10
 
-airdrop:
-  amount: 100000 # urmo
+verifier:
+  verification_keys_paths:
+    sha1: "./verification_key.json"
+    sha256: "./verification_key.json"
+  allowed_age: 18
+  allowed_citizenships: ["UKR"]

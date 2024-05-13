@@ -5,3 +5,5 @@ docker-compose.yaml
 docs/node_modules
 docs/web_deploy
 vendor/
+airdrop-svc
+.DS_Store

@@ -1,22 +1,19 @@
-post:
+get:
   tags:
     - Airdrop
-  summary: Create airdrop
-  description: Create an airdrop for unique user. The proof will be verified.
+  summary: Get an airdrop
+  description: Get an airdrop for unique user.
   operationId: createAirdrop
-  requestBody:
-    content:
-      application/vnd.api+json:
-        schema:
-          type: object
-          required:
-            - data
-          properties:
-            data:
-              $ref: '#/components/schemas/CreateAirdrop'
+  parameters:
+    - in: path
+      name: id
+      description: User nullifier
+      required: true
+      schema:
+        type: string
+        example: "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
   responses:
-    201:
-      description: Airdrop was created, transaction was queued
+    200:
       content:
         application/vnd.api+json:
           schema:
@@ -28,6 +25,8 @@ post:
                 $ref: '#/components/schemas/Airdrop'
     400:
       $ref: '#/components/responses/invalidParameter'
+    404:
+      $ref: '#/components/responses/notFound'
     409:
       description: Airdrop was already done
       content:

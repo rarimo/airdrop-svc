@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kingpin"
+	"github.com/rarimo/airdrop-svc/internal/broadcaster"
 	"github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/internal/service"
 	"gitlab.com/distributed_lab/kit/kv"
@@ -42,7 +43,7 @@ func Run(args []string) bool {
 	defer stop()
 
 	var wg sync.WaitGroup
-	run := func(f func(context.Context, config.Config)) {
+	run := func(f func(context.Context, *config.Config)) {
 		wg.Add(1)
 		go func() {
 			f(ctx, cfg)
@@ -53,6 +54,7 @@ func Run(args []string) bool {
 	switch cmd {
 	case serviceCmd.FullCommand():
 		run(service.Run)
+		run(broadcaster.Run)
 	case migrateUpCmd.FullCommand():
 		err = MigrateUp(cfg)
 	case migrateDownCmd.FullCommand():

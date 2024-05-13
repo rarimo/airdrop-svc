@@ -1,4 +1,4 @@
-package pg
+package data
 
 import (
 	"database/sql"
@@ -10,12 +10,22 @@ import (
 	"gitlab.com/distributed_lab/kit/pgdb"
 )
 
+const (
+	TxStatusPending   = "pending"
+	TxStatusCompleted = "completed"
+	TxStatusFailed    = "failed"
+)
+
 const participantsTable = "participants"
 
 type Participant struct {
 	Nullifier string    `db:"nullifier"`
 	Address   string    `db:"address"`
+	Status    string    `db:"status"`
+	TxHash    string    `db:"tx_hash"`
+	Amount    string    `db:"amount"`
 	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 type ParticipantsQ struct {
@@ -34,11 +44,41 @@ func (q *ParticipantsQ) New() *ParticipantsQ {
 	return NewParticipantsQ(q.db)
 }
 
-func (q *ParticipantsQ) Insert(nullifier, address string) error {
-	stmt := squirrel.Insert(participantsTable).Columns("nullifier").Values(nullifier)
+func (q *ParticipantsQ) Insert(p Participant) (*Participant, error) {
+	var res Participant
+	stmt := squirrel.Insert(participantsTable).SetMap(map[string]interface{}{
+		"nullifier": p.Nullifier,
+		"address":   p.Address,
+		"status":    p.Status,
+		"tx_hash":   p.TxHash,
+		"amount":    p.Amount,
+	}).Suffix("RETURNING *")
+
+	if err := q.db.Get(&res, stmt); err != nil {
+		return nil, fmt.Errorf("insert participant %+v: %w", p, err)
+	}
+
+	return &res, nil
+}
+
+func (q *ParticipantsQ) UpdateStatus(nullifier, txHash, status string) error {
+	stmt := squirrel.Update(participantsTable).
+		Set("status", status).
+		Set("tx_hash", txHash).
+		Where(squirrel.Eq{"nullifier": nullifier})
 
 	if err := q.db.Exec(stmt); err != nil {
-		return fmt.Errorf("insert participant %s: %w", nullifier, err)
+		return fmt.Errorf("update participant status [nullifier=%s newStatus=%s]: %w", nullifier, status, err)
+	}
+
+	return nil
+}
+
+func (q *ParticipantsQ) Delete(nullifier string) error {
+	stmt := squirrel.Delete(participantsTable).Where(squirrel.Eq{"nullifier": nullifier})
+
+	if err := q.db.Exec(stmt); err != nil {
+		return fmt.Errorf("delete participant [nullifier=%s]: %w", nullifier, err)
 	}
 
 	return nil
@@ -70,4 +110,14 @@ func (q *ParticipantsQ) Get(nullifier string) (*Participant, error) {
 	}
 
 	return &res, nil
+}
+
+func (q *ParticipantsQ) Limit(limit uint64) *ParticipantsQ {
+	q.selector = q.selector.Limit(limit)
+	return q
+}
+
+func (q *ParticipantsQ) FilterByStatus(status string) *ParticipantsQ {
+	q.selector = q.selector.Where(squirrel.Eq{"status": status})
+	return q
 }
