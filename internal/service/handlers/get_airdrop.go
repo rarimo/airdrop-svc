@@ -3,52 +3,59 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/go-chi/chi"
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 	data "github.com/rarimo/airdrop-svc/internal/data"
+	"github.com/rarimo/airdrop-svc/internal/service/requests"
 	"github.com/rarimo/airdrop-svc/resources"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
 )
 
 func GetAirdrop(w http.ResponseWriter, r *http.Request) {
-	var (
-		id  = chi.URLParam(r, "id")
-		err = validation.Errors{"{id}": validation.Validate(id, validation.Required)}.Filter()
-	)
+	nullifier, err := requests.NewGetAirdrop(r)
 	if err != nil {
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	participant, err := ParticipantsQ(r).Get(id)
+	airdrops, err := AirdropsQ(r).
+		FilterByNullifier(nullifier).
+		Select()
 	if err != nil {
-		Log(r).WithError(err).Error("Failed to get participant by ID")
+		Log(r).WithError(err).Error("Failed to select airdrops by nullifier")
 		ape.RenderErr(w, problems.InternalError())
 		return
 	}
-	if participant == nil {
+	if len(airdrops) == 0 {
 		ape.RenderErr(w, problems.NotFound())
 		return
 	}
 
-	ape.Render(w, toAirdropResponse(*participant))
+	airdrop := airdrops[0]
+	for _, a := range airdrops[1:] {
+		if a.Status == data.TxStatusCompleted {
+			airdrop = a
+			break
+		}
+	}
+
+	ape.Render(w, toAirdropResponse(airdrop))
 }
 
-func toAirdropResponse(p data.Participant) resources.AirdropResponse {
+func toAirdropResponse(tx data.Airdrop) resources.AirdropResponse {
 	return resources.AirdropResponse{
 		Data: resources.Airdrop{
 			Key: resources.Key{
-				ID:   p.Nullifier,
+				ID:   tx.ID,
 				Type: resources.AIRDROP,
 			},
 			Attributes: resources.AirdropAttributes{
-				Address:   p.Address,
-				Status:    p.Status,
-				CreatedAt: p.CreatedAt,
-				UpdatedAt: p.UpdatedAt,
-				Amount:    p.Amount,
-				TxHash:    p.TxHash,
+				Nullifier: tx.Nullifier,
+				Address:   tx.Address,
+				TxHash:    tx.TxHash,
+				Amount:    tx.Amount,
+				Status:    tx.Status,
+				CreatedAt: tx.CreatedAt,
+				UpdatedAt: tx.UpdatedAt,
 			},
 		},
 	}

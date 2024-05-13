@@ -13,10 +13,12 @@ type AirdropAttributes struct {
 	Amount string `json:"amount"`
 	// RFC3339 UTC timestamp of the airdrop creation
 	CreatedAt time.Time `json:"created_at"`
+	// User nullifier
+	Nullifier string `json:"nullifier"`
 	// Status of the airdrop transaction
 	Status string `json:"status"`
 	// Hash of the airdrop transaction
-	TxHash string `json:"tx_hash"`
+	TxHash *string `json:"tx_hash,omitempty"`
 	// RFC3339 UTC timestamp of the airdrop successful tx
 	UpdatedAt time.Time `json:"updated_at"`
 }

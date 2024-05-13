@@ -20,7 +20,7 @@ func DBCloneMiddleware(db *pgdb.DB) func(http.Handler) http.Handler {
 			ctx := r.Context()
 
 			extenders := []ctxExtender{
-				CtxParticipantsQ(data.NewParticipantsQ(clone)),
+				CtxAirdropsQ(data.NewAirdropsQ(clone)),
 			}
 
 			for _, extender := range extenders {

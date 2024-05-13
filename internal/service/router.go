@@ -26,7 +26,7 @@ func Run(ctx context.Context, cfg *config.Config) {
 	)
 	r.Route("/integrations/airdrop-svc/airdrops", func(r chi.Router) {
 		r.Post("/", handlers.CreateAirdrop)
-		r.Get("/{id}", handlers.GetAirdrop)
+		r.Get("/{nullifier}", handlers.GetAirdrop)
 	})
 
 	cfg.Log().Info("Service started")

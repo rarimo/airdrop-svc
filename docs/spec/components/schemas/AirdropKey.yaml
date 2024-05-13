@@ -5,8 +5,8 @@ required:
 properties:
   id:
     type: string
-    description: User nullifier
-    example: "0x04a32216f2425dc7343031352de3d62a7b0d3b4bf7a66d6c8c2aa8c9f4f2632b"
+    description: Airdrop UUID
+    example: "4bf0b086-decf-4ffb-8d30-7c28665adef9"
   type:
     type: string
     enum: [ airdrop ]
