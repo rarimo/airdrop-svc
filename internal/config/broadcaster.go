@@ -73,10 +73,11 @@ func (b *broadcasterer) Broadcaster() Broadcaster {
 			panic(fmt.Errorf("broadcaster: invalid airdrop amount: %w", err))
 		}
 
-		tlsConfig := &tls.Config{
+		// this hack is required to dial gRPC, please test it with remote RPC if you change this code
+		withInsecure := grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
 			InsecureSkipVerify: true,
-		}
-		cosmosRPC, err := grpc.Dial(cfg.CosmosRPC, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)), grpc.WithKeepaliveParams(keepalive.ClientParameters{
+		}))
+		cosmosRPC, err := grpc.Dial(cfg.CosmosRPC, withInsecure, grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:    10 * time.Second, // wait time before ping if no activity
 			Timeout: 20 * time.Second, // ping timeout
 		}))
