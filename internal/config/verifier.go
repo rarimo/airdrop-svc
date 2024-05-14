@@ -13,9 +13,11 @@ const proofEventIDValue = "30435886288273153911282793098299938669170272771042148
 func (c *Config) Verifier() *zk.Verifier {
 	return c.verifier.Do(func() interface{} {
 		var cfg struct {
-			VerificationKeyPath string   `fig:"verification_key_path,required"`
-			AllowedAge          int      `fig:"allowed_age,required"`
-			AllowedCitizenships []string `fig:"allowed_citizenships,required"`
+			VerificationKeyPath        string   `fig:"verification_key_path,required"`
+			AllowedAge                 int      `fig:"allowed_age,required"`
+			AllowedCitizenships        []string `fig:"allowed_citizenships,required"`
+			AllowedCredentialsCount    int64    `fig:"allowed_credentials_count,required"`
+			AllowedCredentialTimestamp int64    `fig:"allowed_credential_timestamp,required"`
 		}
 
 		err := figure.
@@ -33,6 +35,8 @@ func (c *Config) Verifier() *zk.Verifier {
 			zk.WithAgeAbove(cfg.AllowedAge),
 			zk.WithEventID(proofEventIDValue),
 			zk.WithRootVerifier(c.ProvideVerifier()),
+			zk.WithIdentitiesCounter(cfg.AllowedCredentialsCount),
+			zk.WithIdentitiesCreationTimestampLimit(cfg.AllowedCredentialTimestamp),
 		)
 
 		if err != nil {
