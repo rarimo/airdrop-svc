@@ -38,7 +38,7 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Verifier(r).VerifyProof(req.Data.Attributes.ZkProof, zk.WithEventData(req.Data.Attributes.Address))
+	err = Verifier(r).VerifyProof(req.Data.Attributes.ZkProof, zk.WithRarimoAddress(req.Data.Attributes.Address))
 	if err != nil {
 		if errors.Is(err, identity.ErrContractCall) {
 			Log(r).WithError(err).Error("Failed to verify proof")

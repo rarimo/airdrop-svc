@@ -19,11 +19,9 @@ verifier:
   verification_key_path: "./verification_key.json"
   allowed_age: 18
   allowed_citizenships: ["UKR"]
-# during proof verification allowed_credentials_count OR allowed_credential_timestamp will be checked in public signals
-# allowed_credentials_count - amount of credentials that user may create if the credentials timestamp after airdrop starting
-# allowed_credential_timestamp - timestamp that limits when user might create credentials if it has more than 1
-  allowed_credentials_count: 1
-  allowed_credential_timestamp: 1715698750
+  # at least one of these should be correct to pass:
+  allowed_identity_count: 1
+  allowed_identity_timestamp: 1715698750
 
 root_verifier:
   rpc: evm_rpc_url
