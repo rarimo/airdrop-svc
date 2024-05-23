@@ -8,14 +8,25 @@ import (
 	"gitlab.com/distributed_lab/kit/kv"
 )
 
-const proofEventIDValue = "304358862882731539112827930982999386691702727710421481944329166126417129570"
+type GlobalParams struct {
+	EventID       string
+	QuerySelector string
+	AirdropStart  int64
+}
 
-func (c *Config) Verifier() *zk.Verifier {
+type Verifierer struct {
+	Params     GlobalParams
+	ZkVerifier *zk.Verifier
+}
+
+func (c *Config) Verifier() *Verifierer {
 	return c.verifier.Do(func() interface{} {
 		var cfg struct {
 			VerificationKeyPath      string   `fig:"verification_key_path,required"`
 			AllowedAge               int      `fig:"allowed_age,required"`
 			AllowedCitizenships      []string `fig:"allowed_citizenships,required"`
+			AllowedQuerySelector     string   `fig:"allowed_query_selector,required"`
+			AllowedEventID           string   `fig:"allowed_event_id,required"`
 			AllowedIdentityCount     int64    `fig:"allowed_identity_count,required"`
 			AllowedIdentityTimestamp int64    `fig:"allowed_identity_timestamp,required"`
 		}
@@ -33,8 +44,9 @@ func (c *Config) Verifier() *zk.Verifier {
 			zk.WithVerificationKeyFile(cfg.VerificationKeyPath),
 			zk.WithCitizenships(cfg.AllowedCitizenships...),
 			zk.WithAgeAbove(cfg.AllowedAge),
-			zk.WithEventID(proofEventIDValue),
-			zk.WithRootVerifier(c.ProvideVerifier()),
+			zk.WithProofSelectorValue(cfg.AllowedQuerySelector),
+			zk.WithEventID(cfg.AllowedEventID),
+			zk.WithIdentityVerifier(c.ProvideVerifier()),
 			zk.WithIdentitiesCounter(cfg.AllowedIdentityCount),
 			zk.WithIdentitiesCreationTimestampLimit(cfg.AllowedIdentityTimestamp),
 		)
@@ -43,6 +55,13 @@ func (c *Config) Verifier() *zk.Verifier {
 			panic(fmt.Errorf("failed to initialize passport verifier: %w", err))
 		}
 
-		return v
-	}).(*zk.Verifier)
+		return &Verifierer{
+			ZkVerifier: v,
+			Params: GlobalParams{
+				AirdropStart:  cfg.AllowedIdentityTimestamp,
+				EventID:       cfg.AllowedEventID,
+				QuerySelector: cfg.AllowedQuerySelector,
+			},
+		}
+	}).(*Verifierer)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/rarimo/airdrop-svc/internal/config"
 	"github.com/rarimo/airdrop-svc/internal/data"
 	zk "github.com/rarimo/zkverifier-kit"
 	"gitlab.com/distributed_lab/logan/v3"
@@ -16,6 +17,7 @@ const (
 	airdropsQCtxKey
 	airdropAmountCtxKey
 	verifierCtxKey
+	airdropParamsCtxKey
 )
 
 func CtxLog(entry *logan.Entry) func(context.Context) context.Context {
@@ -46,6 +48,16 @@ func CtxAirdropAmount(amount string) func(context.Context) context.Context {
 
 func AirdropAmount(r *http.Request) string {
 	return r.Context().Value(airdropAmountCtxKey).(string)
+}
+
+func CtxAirdropParams(amount config.GlobalParams) func(context.Context) context.Context {
+	return func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, airdropParamsCtxKey, amount)
+	}
+}
+
+func AirdropParams(r *http.Request) config.GlobalParams {
+	return r.Context().Value(airdropParamsCtxKey).(config.GlobalParams)
 }
 
 func CtxVerifier(entry *zk.Verifier) func(context.Context) context.Context {

@@ -19,6 +19,8 @@ verifier:
   verification_key_path: "./verification_key.json"
   allowed_age: 18
   allowed_citizenships: ["UKR"]
+  allowed_event_id: "event_id"
+  allowed_query_selector: "query_selector"
   # at least one of these should be correct to pass:
   allowed_identity_count: 1
   allowed_identity_timestamp: 1715698750
