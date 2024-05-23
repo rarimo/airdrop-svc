@@ -1,0 +1,17 @@
+get:
+  tags:
+    - Airdrop
+  summary: Get airdrop event parameters
+  description: Get an airdrop parameters for integration.
+  operationId: GetAirdropParams
+  responses:
+    200:
+      content:
+        application/vnd.api+json:
+          schema:
+            type: object
+            required:
+              - data
+            properties:
+              data:
+                $ref: '#/components/schemas/AirdropParams'

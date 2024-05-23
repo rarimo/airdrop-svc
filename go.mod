@@ -11,7 +11,7 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/iden3/go-rapidsnark/types v0.0.3
 	github.com/rarimo/rarimo-core v0.0.0-20231004143803-6b209428ecbf
-	github.com/rarimo/zkverifier-kit v0.2.0
+	github.com/rarimo/zkverifier-kit v0.2.1
 	github.com/rubenv/sql-migrate v1.6.1
 	gitlab.com/distributed_lab/ape v1.7.1
 	gitlab.com/distributed_lab/figure/v3 v3.1.4

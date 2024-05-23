@@ -19,14 +19,16 @@ func Run(ctx context.Context, cfg *config.Config) {
 		ape.LoganMiddleware(cfg.Log()),
 		ape.CtxMiddleware(
 			handlers.CtxLog(cfg.Log()),
-			handlers.CtxVerifier(cfg.Verifier()),
+			handlers.CtxVerifier(cfg.Verifier().ZkVerifier),
 			handlers.CtxAirdropAmount(cfg.Broadcaster().AirdropCoins.String()),
+			handlers.CtxAirdropParams(cfg.Verifier().Params),
 		),
 		handlers.DBCloneMiddleware(cfg.DB()),
 	)
 	r.Route("/integrations/airdrop-svc/airdrops", func(r chi.Router) {
 		r.Post("/", handlers.CreateAirdrop)
 		r.Get("/{nullifier}", handlers.GetAirdrop)
+		r.Get("/params", handlers.GetAirdropParams)
 	})
 
 	cfg.Log().Info("Service started")

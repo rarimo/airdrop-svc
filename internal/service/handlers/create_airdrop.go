@@ -22,7 +22,7 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	nullifier := req.Data.Attributes.ZkProof.PubSignals[zk.PubSignalNullifier]
+	nullifier := req.Data.Attributes.ZkProof.PubSignals[zk.Nullifier]
 
 	airdrop, err := AirdropsQ(r).
 		FilterByNullifier(nullifier).
@@ -38,7 +38,7 @@ func CreateAirdrop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = Verifier(r).VerifyProof(req.Data.Attributes.ZkProof, zk.WithAddress(req.Data.Attributes.Address))
+	err = Verifier(r).VerifyProof(req.Data.Attributes.ZkProof, zk.WithRarimoAddress(req.Data.Attributes.Address))
 	if err != nil {
 		if errors.Is(err, identity.ErrContractCall) {
 			Log(r).WithError(err).Error("Failed to verify proof")
