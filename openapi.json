@@ -134,6 +134,35 @@
           }
         }
       }
+    },
+    "/integrations/airdrop-svc/airdrops/params": {
+      "get": {
+        "tags": [
+          "Airdrop"
+        ],
+        "summary": "Get airdrop event parameters",
+        "description": "Get an airdrop parameters for integration.",
+        "operationId": "GetAirdropParams",
+        "responses": {
+          "200": {
+            "content": {
+              "application/vnd.api+json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/AirdropParams"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -225,6 +254,47 @@
             ]
           }
         }
+      },
+      "AirdropParams": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AirdropKey"
+          },
+          {
+            "type": "object",
+            "required": [
+              "attributes"
+            ],
+            "properties": {
+              "attributes": {
+                "type": "object",
+                "required": [
+                  "event_id",
+                  "query_selector",
+                  "started_at"
+                ],
+                "properties": {
+                  "event_id": {
+                    "type": "string",
+                    "description": "Event identifier that is generated during ZKP query creation",
+                    "example": "304351862882731539112827930982999985591702317710421481944329166111111129570"
+                  },
+                  "started_at": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "Unix timestamp in seconds when airdrop event starts",
+                    "example": 1716381206
+                  },
+                  "query_selector": {
+                    "type": "string",
+                    "description": "Query selector that is used for proof generation",
+                    "example": 123
+                  }
+                }
+              }
+            }
+          }
+        ]
       },
       "CreateAirdrop": {
         "allOf": [
