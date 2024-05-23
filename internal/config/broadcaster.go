@@ -1,7 +1,6 @@
 package config
 
 import (
-	"crypto/tls"
 	"fmt"
 	"time"
 
@@ -21,7 +20,7 @@ import (
 	"gitlab.com/distributed_lab/kit/comfig"
 	"gitlab.com/distributed_lab/kit/kv"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -73,14 +72,14 @@ func (b *broadcasterer) Broadcaster() Broadcaster {
 			panic(fmt.Errorf("broadcaster: invalid airdrop amount: %w", err))
 		}
 
-		// this hack is required to dial gRPC, please test it with remote RPC if you change this code
-		withInsecure := grpc.WithTransportCredentials(credentials.NewTLS(&tls.Config{
-			InsecureSkipVerify: true,
-		}))
-		cosmosRPC, err := grpc.Dial(cfg.CosmosRPC, withInsecure, grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:    10 * time.Second, // wait time before ping if no activity
-			Timeout: 20 * time.Second, // ping timeout
-		}))
+		cosmosRPC, err := grpc.Dial(
+			cfg.CosmosRPC,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithKeepaliveParams(keepalive.ClientParameters{
+				Time:    10 * time.Second, // wait time before ping if no activity
+				Timeout: 20 * time.Second, // ping timeout
+			}),
+		)
 		if err != nil {
 			panic(fmt.Errorf("broadcaster: failed to dial cosmos core rpc: %w", err))
 		}
