@@ -120,6 +120,11 @@ func (q *AirdropsQ) FilterByNullifier(nullifier string) *AirdropsQ {
 	return q
 }
 
+func (q *AirdropsQ) FilterByAddress(address string) *AirdropsQ {
+	q.selector = q.selector.Where(squirrel.Eq{"address": address})
+	return q
+}
+
 func (q *AirdropsQ) FilterByStatus(status string) *AirdropsQ {
 	q.selector = q.selector.Where(squirrel.Eq{"status": status})
 	return q

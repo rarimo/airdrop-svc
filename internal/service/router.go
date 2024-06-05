@@ -29,6 +29,7 @@ func Run(ctx context.Context, cfg *config.Config) {
 		r.Post("/", handlers.CreateAirdrop)
 		r.Get("/{nullifier}", handlers.GetAirdrop)
 		r.Get("/params", handlers.GetAirdropParams)
+		r.Post("/do", handlers.MustCreateAirdrop)
 	})
 
 	cfg.Log().Info("Service started")
